@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Im·Desk — Agenda Immobiliare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #F7F4EF;
+    --bg-2:      #F0EBE3;
+    --bg-3:      #EDE8E0;
+    --white:     #ffffff;
+    --border:    #E8E2D9;
+    --border-2:  #D4C5B0;
+    --gold:      #B07D4A;
+    --gold-dark: #8A5E30;
+    --gold-light:#FAF0E4;
+    --gold-mid:  #D4A96A;
+    --terra:     #C4543A;
+    --terra-bg:  #FDF1EE;
+    --text-1:    #1A1612;
+    --text-2:    #5C4D3C;
+    --text-3:    #8C7B6B;
+    --text-4:    #B09A82;
+    --text-5:    #C4B49E;
+    --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-pill: 20px;
+    --font-serif: 'DM Serif Display', Georgia, serif;
+    --font-sans:  'DM Sans', system-ui, sans-serif;
+    --tr: .18s ease;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text-1);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; flex-direction: column; min-height: 100vh; max-width: 1100px; margin: 0 auto; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 62px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .logo {
+    font-family: var(--font-serif); font-size: 22px; font-weight: 400;
+    color: var(--text-1); letter-spacing: .01em; user-select: none;
+  }
+  .logo em { font-style: italic; color: var(--gold); }
+
+  .nav-pills {
+    display: flex; gap: 3px;
+    background: var(--bg-3); padding: 4px; border-radius: var(--r-pill);
+  }
+  .nav-btn {
+    padding: 6px 22px; border-radius: var(--r-pill);
+    font-size: 13px; font-weight: 400; font-family: var(--font-sans);
+    border: none; cursor: pointer; color: var(--text-3); background: transparent;
+    transition: var(--tr);
+  }
+  .nav-btn.active {
+    background: var(--white); color: var(--text-1); font-weight: 500;
+    box-shadow: 0 1px 4px rgba(26,22,18,.1);
+  }
+  .topbar-date { font-size: 11px; color: var(--text-4); letter-spacing: .05em; }
+
+  /* ── PAGES ── */
+  .page { display: none; flex: 1; }
+  .page.active { display: block; }
+
+  /* ── HERO ── */
+  .hero {
+    display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 32px 32px 28px; border-bottom: 1px solid var(--border);
+    gap: 24px; animation: fadeUp .4s ease both;
+  }
+  .hero-eyebrow { font-size: 10px; color: var(--text-4); letter-spacing: .16em; text-transform: uppercase; margin-bottom: 8px; }
+  .hero-title { font-family: var(--font-serif); font-size: 32px; font-weight: 400; line-height: 1.18; color: var(--text-1); }
+  .hero-title em { font-style: italic; color: var(--gold); }
+
+  .hero-stats { display: flex; gap: 10px; flex-shrink: 0; }
+  .stat-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--r-md); padding: 14px 18px; text-align: right; min-width: 90px;
+    animation: fadeUp .4s ease both;
+  }
+  .stat-card:nth-child(2){animation-delay:.05s} .stat-card:nth-child(3){animation-delay:.1s}
+  .stat-num { font-family: var(--font-serif); font-size: 24px; font-weight: 400; color: var(--text-1); line-height: 1; }
+  .stat-num.accent { color: var(--gold); }
+  .stat-label { font-size: 10px; color: var(--text-4); text-transform: uppercase; letter-spacing: .09em; margin-top: 3px; }
+
+  /* ── MAIN GRID ── */
+  .main-grid { display: grid; grid-template-columns: 1fr 1fr; flex: 1; }
+  .col { padding: 26px 32px; animation: fadeUp .4s ease .1s both; }
+  .col + .col { border-left: 1px solid var(--border); }
+  .col-label { font-size: 10px; color: var(--text-5); letter-spacing: .16em; text-transform: uppercase; margin-bottom: 16px; font-weight: 500; }
+  .col-section { margin-bottom: 28px; }
+  .col-section:last-child { margin-bottom: 0; }
+
+  /* ── TASKS ── */
+  .task-row {
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: 10px 0; border-bottom: 1px solid var(--bg-2);
+    transition: background var(--tr); border-radius: var(--r-sm);
+  }
+  .task-row:last-child { border-bottom: none; }
+  .task-row:hover { background: rgba(255,255,255,.6); padding-left: 8px; padding-right: 8px; margin: 0 -8px; }
+
+  .task-marker {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1.5px solid var(--border-2); flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: var(--tr);
+  }
+  .task-marker:hover { border-color: var(--gold); }
+  .task-marker.checked { background: var(--gold); border-color: var(--gold); }
+  .task-marker.checked::after { content: ''; display: block; width: 6px; height: 6px; border-radius: 50%; background: var(--white); }
+  .task-marker.urgent { border-color: var(--terra); }
+  .task-marker.urgent .inner-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--terra); }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-text { font-size: 13px; color: var(--text-2); line-height: 1.45; }
+  .task-text.done { color: var(--text-5); text-decoration: line-through; }
+  .task-sub { font-size: 11px; color: var(--text-4); margin-top: 2px; }
+
+  .deadline-badge {
+    font-size: 11px; white-space: nowrap; padding: 2px 9px; border-radius: 10px;
+    background: var(--bg-2); color: var(--text-3); flex-shrink: 0; margin-top: 3px;
+  }
+  .deadline-badge.oggi { background: var(--gold-light); color: var(--gold-dark); font-weight: 500; }
+  .deadline-badge.urgente { background: var(--gold-light); color: var(--gold); font-weight: 500; }
+  .deadline-badge.scaduto { background: var(--terra-bg); color: var(--terra); }
+
+  .expand-toggle { font-size: 11px; color: var(--text-5); cursor: pointer; padding: 0 3px; flex-shrink: 0; margin-top: 3px; transition: transform var(--tr); display: block; }
+  .expand-toggle.open { transform: rotate(90deg); }
+
+  .subtasks-wrap { margin: 2px 0 6px 31px; border-left: 1.5px solid var(--border); padding-left: 12px; }
+  .subtask-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--bg-2); }
+  .subtask-row:last-child { border-bottom: none; }
+  .sub-marker {
+    width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--border-2);
+    flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--tr);
+  }
+  .sub-marker.checked { background: var(--gold); border-color: var(--gold); }
+  .sub-marker.checked::after { content: ''; width: 4px; height: 4px; border-radius: 50%; background: var(--white); display: block; }
+  .sub-text { flex: 1; font-size: 12px; color: var(--text-2); }
+  .sub-text.done { color: var(--text-5); text-decoration: line-through; }
+  .sub-dead { font-size: 10px; color: var(--text-4); }
+
+  .add-row {
+    display: flex; align-items: center; gap: 6px; padding: 8px 0 0;
+    font-size: 12px; color: var(--text-4); cursor: pointer;
+    border: none; background: transparent; font-family: var(--font-sans); transition: color var(--tr);
+  }
+  .add-row:hover { color: var(--gold); }
+
+  /* ── PRATICHE PAGE ── */
+  .pratiche-wrap { padding: 26px 32px; max-width: 800px; animation: fadeUp .4s ease .1s both; }
+
+  .pratica-card {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--r-md); margin-bottom: 12px; overflow: hidden;
+    transition: border-color var(--tr);
+  }
+  .pratica-card:hover { border-color: var(--border-2); }
+
+  .pratica-header { display: flex; align-items: center; padding: 16px 18px; cursor: pointer; gap: 14px; }
+  .pratica-status { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .status-open { background: var(--gold-mid); }
+  .status-done { background: var(--gold); }
+
+  .pratica-names { flex: 1; }
+  .pratica-title { font-family: var(--font-serif); font-size: 16px; font-weight: 400; color: var(--text-1); line-height: 1.3; }
+  .pratica-title em { font-style: italic; color: var(--gold); }
+  .pratica-addr { font-size: 11px; color: var(--text-4); margin-top: 2px; }
+
+  .pratica-right { text-align: right; flex-shrink: 0; }
+  .pratica-val { font-family: var(--font-serif); font-size: 16px; font-weight: 400; color: var(--text-1); }
+  .pratica-paid { font-size: 11px; color: var(--gold); margin-top: 1px; }
+  .pratica-expand { font-size: 12px; color: var(--text-5); transition: transform var(--tr); }
+  .pratica-expand.open { transform: rotate(90deg); }
+
+  .pratica-body { border-top: 1px solid var(--border); }
+  .ptabs { display: flex; border-bottom: 1px solid var(--bg-2); }
+  .ptab {
+    flex: 1; padding: 10px 12px; text-align: center; font-size: 12px;
+    color: var(--text-4); cursor: pointer; border-bottom: 2px solid transparent;
+    transition: var(--tr); font-family: var(--font-sans);
+  }
+  .ptab:hover { color: var(--text-2); }
+  .ptab.active { color: var(--text-1); border-bottom-color: var(--gold); font-weight: 500; }
+  .ptab-content { padding: 16px 18px; }
+
+  .doc-row { display: flex; align-items: center; gap: 9px; padding: 7px 0; border-bottom: 1px solid var(--bg-2); }
+  .doc-row:last-child { border-bottom: none; }
+  .doc-check {
+    width: 17px; height: 17px; border-radius: 4px; border: 1.5px solid var(--border-2);
+    flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--tr);
+  }
+  .doc-check:hover { border-color: var(--gold); }
+  .doc-check.checked { background: var(--gold); border-color: var(--gold); }
+  .doc-check.checked::after { content: '✓'; color: var(--white); font-size: 10px; font-weight: 500; }
+  .doc-label { font-size: 13px; color: var(--text-2); }
+  .doc-label.done { color: var(--text-5); text-decoration: line-through; }
+
+  .pay-row { display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--bg-2); gap: 12px; }
+  .pay-row:last-child { border-bottom: none; }
+  .pay-desc { flex: 1; font-size: 13px; color: var(--text-2); }
+  .pay-meta { font-size: 11px; color: var(--text-4); margin-top: 1px; }
+  .pay-amt { font-family: var(--font-serif); font-size: 16px; font-weight: 400; color: var(--text-1); white-space: nowrap; }
+
+  .totale-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+  .totale-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+  .totale-label { font-size: 12px; color: var(--text-3); }
+  .totale-val { font-family: var(--font-serif); font-size: 17px; font-weight: 400; }
+  .totale-val.gold { color: var(--gold); }
+  .totale-val.red { color: var(--terra); }
+  .saldo-ok { font-size: 11px; color: var(--gold); padding: 4px 0; }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(26,22,18,.3); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--white); border: 1px solid var(--border);
+    border-radius: var(--r-lg); padding: 26px;
+    width: 390px; max-width: 95vw; animation: fadeUp .2s ease both;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal h3 { font-family: var(--font-serif); font-size: 22px; font-weight: 400; margin-bottom: 20px; color: var(--text-1); }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; color: var(--text-3); letter-spacing: .07em; text-transform: uppercase; margin-bottom: 5px; }
+  .field input, .field select, .field textarea {
+    width: 100%; font-size: 13px; padding: 9px 12px;
+    border: 1px solid var(--border); border-radius: var(--r-sm);
+    background: var(--bg); color: var(--text-1); font-family: var(--font-sans);
+    transition: border-color var(--tr);
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--gold-mid); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .btn-cancel {
+    padding: 9px 18px; border: 1px solid var(--border); border-radius: var(--r-sm);
+    background: transparent; font-size: 13px; cursor: pointer; color: var(--text-3);
+    font-family: var(--font-sans); transition: var(--tr);
+  }
+  .btn-cancel:hover { background: var(--bg-2); }
+  .btn-save {
+    padding: 9px 22px; border: none; border-radius: var(--r-sm);
+    background: var(--gold); color: var(--white);
+    font-size: 13px; cursor: pointer; font-weight: 500;
+    font-family: var(--font-sans); transition: var(--tr);
+  }
+  .btn-save:hover { background: var(--gold-dark); }
+
+  /* ── BOTTOMBAR ── */
+  .bottombar {
+    background: var(--bg-2); padding: 13px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid var(--border);
+  }
+  .add-actions { display: flex; gap: 20px; }
+  .add-quick {
+    font-size: 12px; color: var(--gold); cursor: pointer;
+    border: none; background: transparent; font-family: var(--font-sans);
+    transition: color var(--tr); padding: 0;
+  }
+  .add-quick:hover { color: var(--gold-dark); }
+  .version { font-size: 10px; color: var(--text-5); letter-spacing: .08em; }
+
+  .add-pratica-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px;
+    border: 1px dashed var(--border-2); border-radius: var(--r-md);
+    background: transparent; font-size: 13px; cursor: pointer;
+    width: 100%; color: var(--text-3); font-family: var(--font-sans);
+    margin-top: 4px; transition: var(--tr);
+  }
+  .add-pratica-btn:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-light); }
+
+  .empty { text-align: left; padding: 16px 0; color: var(--text-4); font-size: 13px; }
+
+  /* ── PROGRESS BAR ── */
+  .prog-wrap { display: flex; align-items: center; gap: 10px; }
+  .prog-bg { flex: 1; height: 2px; background: var(--bg-2); border-radius: 2px; }
+  .prog-fill { height: 2px; border-radius: 2px; background: var(--gold); }
+  .prog-pct { font-size: 10px; color: var(--text-4); white-space: nowrap; }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  @media (max-width: 680px) {
+    .topbar { padding: 0 16px; } .topbar-date { display: none; }
+    .hero { padding: 20px 16px 18px; flex-direction: column; align-items: flex-start; }
+    .hero-stats { width: 100%; } .stat-card { flex: 1; text-align: left; }
+    .main-grid { grid-template-columns: 1fr; }
+    .col { padding: 20px 16px; }
+    .col + .col { border-left: none; border-top: 1px solid var(--border); }
+    .pratiche-wrap { padding: 20px 16px; }
+    .bottombar { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="logo">Im<em>·</em>Desk</div>
+    <nav class="nav-pills">
+      <button class="nav-btn active" onclick="showPage('agenda',this)">Agenda</button>
+      <button class="nav-btn" onclick="showPage('pratiche',this)">Pratiche</button>
+    </nav>
+    <div class="topbar-date" id="topbar-date"></div>
+  </header>
+
+  <!-- AGENDA -->
+  <div id="page-agenda" class="page active">
+    <div class="hero">
+      <div>
+        <div class="hero-eyebrow" id="hero-saluto">Buongiorno</div>
+        <div class="hero-title" id="hero-title">Caricamento…</div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-card"><div class="stat-num accent" id="stat-oggi">0</div><div class="stat-label">Oggi</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-pratiche">0</div><div class="stat-label">Pratiche</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-valore">—</div><div class="stat-label">In gestione</div></div>
+      </div>
+    </div>
+    <div class="main-grid">
+      <div class="col">
+        <div class="col-section">
+          <div class="col-label">Oggi</div>
+          <div id="list-oggi"></div>
+          <button class="add-row" onclick="openAddPriority('oggi')">＋ Aggiungi priorità</button>
+        </div>
+        <div class="col-section">
+          <div class="col-label">Questa settimana</div>
+          <div id="list-settimana"></div>
+          <button class="add-row" onclick="openAddPriority('settimana')">＋ Aggiungi priorità</button>
+        </div>
+        <div class="col-section">
+          <div class="col-label">Questo mese</div>
+          <div id="list-mese"></div>
+          <button class="add-row" onclick="openAddPriority('mese')">＋ Aggiungi priorità</button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-label">Pratiche attive</div>
+        <div id="pratiche-preview"></div>
+        <button class="add-row" onclick="showPage('pratiche',document.querySelectorAll('.nav-btn')[1]);openAddPratica()">＋ Nuova pratica</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRATICHE -->
+  <div id="page-pratiche" class="page">
+    <div class="pratiche-wrap">
+      <div id="pratiche-list"></div>
+      <button class="add-pratica-btn" onclick="openAddPratica()">＋ Nuova pratica</button>
+    </div>
+  </div>
+
+  <footer class="bottombar">
+    <div class="add-actions">
+      <button class="add-quick" onclick="openAddPriority('oggi')">＋ Priorità oggi</button>
+      <button class="add-quick" onclick="showPage('pratiche',document.querySelectorAll('.nav-btn')[1]);openAddPratica()">＋ Nuova pratica</button>
+    </div>
+    <div class="version">ImDesk v1.0 · uso personale</div>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<script>
+const DOCS_ACQ=["Documento d'identità","Codice fiscale","Stato civile / estratto atto di matrimonio","Procura notarile (se necessaria)","Proposta d'acquisto firmata","Preliminare di compravendita","Compromesso registrato","Documentazione mutuo / pre-approvazione banca","Copia assegni / bonifici caparra","Recapiti e PEC"];
+const DOCS_VEND=["Documento d'identità","Codice fiscale","Atto di provenienza immobile","Visura catastale aggiornata","Planimetria catastale","Certificato di agibilità","APE (Attestato Prestazione Energetica)","Documenti condominiali / liberatoria morosità","Cancellazione ipoteche","Copia chiavi e attestati impianti"];
+
+let state={priorities:{oggi:[],settimana:[],mese:[]},pratiche:[]};
+try{const s=localStorage.getItem('imdesk_v2');if(s)state=JSON.parse(s);}catch(e){}
+function save(){try{localStorage.setItem('imdesk_v2',JSON.stringify(state));}catch(e){}}
+
+const today=new Date();today.setHours(0,0,0,0);
+const GG=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const MM=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+
+function updateDate(){
+  const d=new Date();
+  document.getElementById('topbar-date').textContent=GG[d.getDay()]+', '+d.getDate()+' '+MM[d.getMonth()]+' '+d.getFullYear();
+  const h=d.getHours();
+  document.getElementById('hero-saluto').textContent=h<12?'Buongiorno':h<18?'Buon pomeriggio':'Buonasera';
+}
+
+function fmtDate(s){if(!s)return'';const d=new Date(s);return d.getDate()+'/'+(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2);}
+
+function deadlineInfo(s){
+  if(!s)return{label:'',cls:''};
+  const d=new Date(s);d.setHours(0,0,0,0);
+  const diff=Math.round((d-today)/86400000);
+  if(diff<0)return{label:'Scaduto',cls:'scaduto'};
+  if(diff===0)return{label:'Oggi',cls:'oggi'};
+  if(diff<=3)return{label:'Tra '+diff+'g',cls:'urgente'};
+  return{label:fmtDate(s),cls:''};
+}
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='agenda')renderAgenda();
+  if(id==='pratiche')renderPratiche();
+}
+
+function openModal(html){document.getElementById('modal-box').innerHTML=html;document.getElementById('modal-backdrop').classList.add('open');setTimeout(()=>{const f=document.querySelector('#modal-box input,#modal-box select');if(f)f.focus();},50);}
+function closeModal(){document.getElementById('modal-backdrop').classList.remove('open');}
+function closeModalOutside(e){if(e.target===document.getElementById('modal-backdrop'))closeModal();}
+
+function openAddPriority(group){
+  openModal(`<h3>Nuova priorità</h3>
+    <div class="field"><label>Titolo</label><input id="m-title" placeholder="Es. Chiamare il notaio"></div>
+    <div class="field"><label>Scadenza</label><input id="m-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="savePriority('${group}')">Aggiungi</button>
+    </div>`);
+}
+function savePriority(group){
+  const t=document.getElementById('m-title').value.trim();
+  const d=document.getElementById('m-date').value;
+  if(!t)return;
+  state.priorities[group].push({id:Date.now(),title:t,deadline:d,done:false,open:false,subtasks:[]});
+  save();closeModal();renderAgenda();
+}
+function togglePriority(group,id){
+  const p=state.priorities[group].find(x=>x.id===id);
+  if(p){p.done=!p.done;save();renderAgenda();}
+}
+function toggleExpand(group,id){
+  const p=state.priorities[group].find(x=>x.id===id);
+  if(p){p.open=!p.open;renderAgenda();}
+}
+function openAddSub(group,pid){
+  openModal(`<h3>Sotto-priorità</h3>
+    <div class="field"><label>Titolo</label><input id="m-title" placeholder="Es. Richiedere documento"></div>
+    <div class="field"><label>Scadenza</label><input id="m-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="saveSub('${group}',${pid})">Aggiungi</button>
+    </div>`);
+}
+function saveSub(group,pid){
+  const t=document.getElementById('m-title').value.trim();
+  const d=document.getElementById('m-date').value;
+  if(!t)return;
+  const p=state.priorities[group].find(x=>x.id===pid);
+  if(p){p.subtasks.push({id:Date.now(),title:t,deadline:d,done:false});p.open=true;}
+  save();closeModal();renderAgenda();
+}
+function toggleSub(group,pid,sid){
+  const p=state.priorities[group].find(x=>x.id===pid);
+  if(!p)return;
+  const s=p.subtasks.find(x=>x.id===sid);
+  if(s){s.done=!s.done;save();renderAgenda();}
+}
+
+function renderPriorityList(group,containerId){
+  const el=document.getElementById(containerId);if(!el)return;
+  const items=state.priorities[group];
+  if(!items.length){el.innerHTML='<div class="empty">Nessuna priorità</div>';return;}
+  el.innerHTML=items.map(p=>{
+    const di=deadlineInfo(p.deadline);
+    const badge=di.label?`<span class="deadline-badge ${di.cls}">${di.label}</span>`:'';
+    const mc=p.done?'checked':(di.cls==='urgente'||di.cls==='scaduto'?'urgent':'');
+    const inner=mc==='urgent'?'<div class="inner-dot"></div>':'';
+    const subs=p.subtasks.map(s=>{
+      const sdi=deadlineInfo(s.deadline);
+      return`<div class="subtask-row">
+        <div class="sub-marker ${s.done?'checked':''}" onclick="toggleSub('${group}',${p.id},${s.id})"></div>
+        <span class="sub-text ${s.done?'done':''}">${s.title}</span>
+        ${sdi.label?`<span class="sub-dead">${sdi.label}</span>`:''}
+      </div>`;
+    }).join('');
+    return`<div>
+      <div class="task-row">
+        <div class="task-marker ${mc}" onclick="togglePriority('${group}',${p.id})">${inner}</div>
+        <div class="task-body"><div class="task-text ${p.done?'done':''}">${p.title}</div></div>
+        ${badge}
+        <span class="expand-toggle ${p.open?'open':''}" onclick="toggleExpand('${group}',${p.id})">▶</span>
+      </div>
+      ${p.open?`<div class="subtasks-wrap">${subs}<button class="add-row" style="padding:5px 0 2px" onclick="openAddSub('${group}',${p.id})">＋ Sotto-priorità</button></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function openAddPratica(){
+  openModal(`<h3>Nuova pratica</h3>
+    <div class="field"><label>Nome acquirente</label><input id="m-acq" placeholder="Mario Rossi"></div>
+    <div class="field"><label>Nome venditore</label><input id="m-vend" placeholder="Laura Bianchi"></div>
+    <div class="field"><label>Indirizzo immobile</label><input id="m-addr" placeholder="Via Roma 1, Milano"></div>
+    <div class="field"><label>Valore compravendita (€)</label><input id="m-val" type="number" placeholder="250000" min="0"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="savePratica()">Crea pratica</button>
+    </div>`);
+}
+function savePratica(){
+  const acq=document.getElementById('m-acq').value.trim();
+  const vend=document.getElementById('m-vend').value.trim();
+  const addr=document.getElementById('m-addr').value.trim();
+  const val=parseFloat(document.getElementById('m-val').value)||0;
+  if(!acq||!vend)return;
+  state.pratiche.push({id:Date.now(),acquirente:acq,venditore:vend,indirizzo:addr,valore:val,
+    docsAcq:DOCS_ACQ.map((d,i)=>({id:i,label:d,checked:false})),
+    docsVend:DOCS_VEND.map((d,i)=>({id:i,label:d,checked:false})),
+    payments:[],open:false,activeTab:'docs_acq',status:'open'});
+  save();closeModal();renderAgenda();
+  if(document.getElementById('page-pratiche').classList.contains('active'))renderPratiche();
+}
+function togglePraticaOpen(id){
+  const p=state.pratiche.find(x=>x.id===id);
+  if(p){p.open=!p.open;renderPratiche();}
+}
+function setPraticaTab(id,tab){
+  const p=state.pratiche.find(x=>x.id===id);
+  if(p){p.activeTab=tab;renderPratiche();}
+}
+function toggleDoc(pid,type,docId){
+  const p=state.pratiche.find(x=>x.id===pid);if(!p)return;
+  const arr=type==='acq'?p.docsAcq:p.docsVend;
+  const d=arr.find(x=>x.id===docId);
+  if(d){d.checked=!d.checked;save();renderPratiche();renderAgenda();}
+}
+function openAddPayment(pid){
+  openModal(`<h3>Aggiungi pagamento</h3>
+    <div class="field"><label>Descrizione</label><input id="m-desc" placeholder="Caparra confirmatoria"></div>
+    <div class="field"><label>Importo (€)</label><input id="m-amt" type="number" placeholder="10000" min="0"></div>
+    <div class="field"><label>Metodo</label>
+      <select id="m-met"><option>Bonifico bancario</option><option>Assegno circolare</option><option>Assegno bancario</option><option>Contanti</option><option>Altro</option></select>
+    </div>
+    <div class="field"><label>Data</label><input id="m-pdate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="savePayment(${pid})">Aggiungi</button>
+    </div>`);
+}
+function savePayment(pid){
+  const desc=document.getElementById('m-desc').value.trim();
+  const amt=parseFloat(document.getElementById('m-amt').value)||0;
+  const met=document.getElementById('m-met').value;
+  const dt=document.getElementById('m-pdate').value;
+  if(!desc||!amt)return;
+  const p=state.pratiche.find(x=>x.id===pid);
+  if(p)p.payments.push({id:Date.now(),desc,amount:amt,method:met,date:dt});
+  save();closeModal();renderPratiche();
+}
+
+function renderAgenda(){
+  renderPriorityList('oggi','list-oggi');
+  renderPriorityList('settimana','list-settimana');
+  renderPriorityList('mese','list-mese');
+  const oggiCount=state.priorities.oggi.filter(p=>!p.done).length;
+  document.getElementById('stat-oggi').textContent=oggiCount;
+  document.getElementById('stat-pratiche').textContent=state.pratiche.filter(p=>p.status==='open').length;
+  const totVal=state.pratiche.reduce((a,p)=>a+(p.valore||0),0);
+  document.getElementById('stat-valore').textContent=totVal>0?'€'+(totVal>=1000000?(totVal/1000000).toFixed(1)+'M':totVal>=1000?Math.round(totVal/1000)+'k':totVal):'—';
+  const pratAp=state.pratiche.filter(p=>p.status==='open').length;
+  let title='';
+  if(oggiCount===0&&pratAp===0)title='Tutto in regola.<br>Ottimo lavoro!';
+  else if(oggiCount===0)title=`Nessuna priorità oggi<br>e <em>${pratAp} ${pratAp===1?'pratica aperta':'pratiche aperte'}</em>`;
+  else title=`Hai <em>${oggiCount} ${oggiCount===1?'priorità':'priorità'}</em> oggi${pratAp>0?'<br>e '+pratAp+' '+(pratAp===1?'pratica aperta':'pratiche aperte'):''}`;
+  document.getElementById('hero-title').innerHTML=title;
+
+  const prev=document.getElementById('pratiche-preview');if(!prev)return;
+  const aperte=state.pratiche.filter(p=>p.status==='open').slice(0,3);
+  if(!aperte.length){prev.innerHTML='<div class="empty">Nessuna pratica</div>';return;}
+  prev.innerHTML=aperte.map(p=>{
+    const tot=p.docsAcq.length+p.docsVend.length;
+    const done=p.docsAcq.filter(d=>d.checked).length+p.docsVend.filter(d=>d.checked).length;
+    const pct=tot?Math.round(done/tot*100):0;
+    return`<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);padding:13px 15px;margin-bottom:10px">
+      <div style="font-family:var(--font-serif);font-size:14px;color:var(--text-1);margin-bottom:2px">
+        ${p.acquirente} <em style="font-style:italic;color:var(--gold)">→</em> ${p.venditore}
+      </div>
+      <div style="font-size:11px;color:var(--text-4);margin-bottom:10px">${p.indirizzo||'Indirizzo non specificato'}</div>
+      <div class="prog-wrap">
+        <div style="font-family:var(--font-serif);font-size:14px;color:var(--text-1)">€ ${(p.valore||0).toLocaleString('it-IT')}</div>
+        <div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div>
+        <div class="prog-pct">${done}/${tot} doc</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPratiche(){
+  const el=document.getElementById('pratiche-list');if(!el)return;
+  if(!state.pratiche.length){el.innerHTML='<div class="empty" style="padding:40px 0;text-align:center">Nessuna pratica. Creane una!</div>';return;}
+  el.innerHTML=state.pratiche.map(p=>{
+    const totPagato=p.payments.reduce((a,x)=>a+x.amount,0);
+    const saldo=(p.valore||0)-totPagato;
+    const dA=p.docsAcq.filter(d=>d.checked).length,dV=p.docsVend.filter(d=>d.checked).length;
+    const totDoc=p.docsAcq.length+p.docsVend.length,doneDoc=dA+dV;
+    let body='';
+    if(p.open){
+      const tabs={docs_acq:`Acquirente (${dA}/${p.docsAcq.length})`,docs_vend:`Venditore (${dV}/${p.docsVend.length})`,pagamenti:'Pagamenti'};
+      const tabsHtml=Object.keys(tabs).map(t=>`<div class="ptab ${p.activeTab===t?'active':''}" onclick="setPraticaTab(${p.id},'${t}')">${tabs[t]}</div>`).join('');
+      let content='';
+      if(p.activeTab==='docs_acq'){
+        content=p.docsAcq.map(d=>`<div class="doc-row"><div class="doc-check ${d.checked?'checked':''}" onclick="toggleDoc(${p.id},'acq',${d.id})"></div><span class="doc-label ${d.checked?'done':''}">${d.label}</span></div>`).join('');
+      }else if(p.activeTab==='docs_vend'){
+        content=p.docsVend.map(d=>`<div class="doc-row"><div class="doc-check ${d.checked?'checked':''}" onclick="toggleDoc(${p.id},'vend',${d.id})"></div><span class="doc-label ${d.checked?'done':''}">${d.label}</span></div>`).join('');
+      }else{
+        const rows=p.payments.map(pay=>`<div class="pay-row"><div><div class="pay-desc">${pay.desc}</div><div class="pay-meta">${pay.method} · ${fmtDate(pay.date)}</div></div><div class="pay-amt">€ ${pay.amount.toLocaleString('it-IT')}</div></div>`).join('');
+        content=`${rows}<div class="totale-section">
+          <div class="totale-row"><span class="totale-label">Totale compravendita</span><span class="totale-val">€ ${(p.valore||0).toLocaleString('it-IT')}</span></div>
+          <div class="totale-row"><span class="totale-label">Totale versato</span><span class="totale-val gold">€ ${totPagato.toLocaleString('it-IT')}</span></div>
+          ${saldo>0?`<div class="totale-row"><span class="totale-label">Saldo residuo</span><span class="totale-val red">€ ${saldo.toLocaleString('it-IT')}</span></div>`:`<div class="saldo-ok">Pratica saldata ✓</div>`}
+        </div>
+        <div style="margin-top:12px"><button class="add-pratica-btn" onclick="openAddPayment(${p.id})">＋ Aggiungi pagamento</button></div>`;
+      }
+      body=`<div class="pratica-body"><div class="ptabs">${tabsHtml}</div><div class="ptab-content">${content}</div></div>`;
+    }
+    return`<div class="pratica-card">
+      <div class="pratica-header" onclick="togglePraticaOpen(${p.id})">
+        <div class="pratica-status ${p.status==='done'?'status-done':'status-open'}"></div>
+        <div class="pratica-names">
+          <div class="pratica-title">${p.acquirente} <em>→</em> ${p.venditore}</div>
+          <div class="pratica-addr">${p.indirizzo||'Indirizzo non specificato'} · ${doneDoc}/${totDoc} documenti</div>
+        </div>
+        <div class="pratica-right">
+          <div class="pratica-val">€ ${(p.valore||0).toLocaleString('it-IT')}</div>
+          ${totPagato>0?`<div class="pratica-paid">Versato: € ${totPagato.toLocaleString('it-IT')}</div>`:''}
+        </div>
+        <span class="pratica-expand ${p.open?'open':''}">▶</span>
+      </div>
+      ${body}
+    </div>`;
+  }).join('');
+}
+
+updateDate();
+renderAgenda();
+</script>
+</body>
+</html>

@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Im·Desk — Agenda Immobiliare</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F4EF;--bg-2:#F0EBE3;--bg-3:#EDE8E0;--white:#ffffff;
+  --border:#E8E2D9;--border-2:#D4C5B0;
+  --gold:#B07D4A;--gold-dark:#8A5E30;--gold-light:#FAF0E4;--gold-mid:#D4A96A;
+  --terra:#C4543A;--terra-bg:#FDF1EE;
+  --text-1:#1A1612;--text-2:#5C4D3C;--text-3:#8C7B6B;--text-4:#B09A82;--text-5:#C4B49E;
+  --oggi-color:#C4543A;--sett-color:#B07D4A;--mese-color:#5C7A52;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-pill:20px;
+  --font-serif:'DM Serif Display',Georgia,serif;--font-sans:'DM Sans',system-ui,sans-serif;
+  --tr:.18s ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text-1);min-height:100vh;-webkit-font-smoothing:antialiased}
+.app{display:flex;flex-direction:column;min-height:100vh;max-width:1200px;margin:0 auto}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:62px;background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50}
+.logo{font-family:var(--font-serif);font-size:21px;color:var(--text-1);user-select:none;flex-shrink:0}
+.logo em{font-style:italic;color:var(--gold)}
+.nav-pills{display:flex;gap:3px;background:var(--bg-3);padding:4px;border-radius:var(--r-pill)}
+.nav-btn{padding:6px 18px;border-radius:var(--r-pill);font-size:12.5px;font-family:var(--font-sans);border:none;cursor:pointer;color:var(--text-3);background:transparent;transition:var(--tr);white-space:nowrap}
+.nav-btn.active{background:var(--white);color:var(--text-1);font-weight:500;box-shadow:0 1px 4px rgba(26,22,18,.1)}
+.topbar-date{font-size:11px;color:var(--text-4);letter-spacing:.05em;flex-shrink:0}
+
+/* PAGES */
+.page{display:none;flex:1}.page.active{display:block}
+
+/* HERO */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;padding:28px 28px 24px;border-bottom:1px solid var(--border);gap:20px;animation:fadeUp .4s ease both}
+.hero-eyebrow{font-size:10px;color:var(--text-4);letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}
+.hero-title{font-family:var(--font-serif);font-size:30px;line-height:1.18;color:var(--text-1)}
+.hero-title em{font-style:italic;color:var(--gold)}
+.hero-stats{display:flex;gap:8px;flex-shrink:0}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 16px;text-align:right;min-width:80px;animation:fadeUp .4s ease both}
+.stat-card:nth-child(2){animation-delay:.05s}.stat-card:nth-child(3){animation-delay:.1s}
+.stat-num{font-family:var(--font-serif);font-size:22px;color:var(--text-1);line-height:1}
+.stat-num.accent{color:var(--gold)}
+.stat-label{font-size:10px;color:var(--text-4);text-transform:uppercase;letter-spacing:.09em;margin-top:3px}
+
+/* MAIN GRID */
+.main-grid{display:grid;grid-template-columns:1fr 1fr;flex:1}
+.col{padding:22px 28px;animation:fadeUp .4s ease .1s both}
+.col+.col{border-left:1px solid var(--border)}
+.col-label{font-size:10px;color:var(--text-5);letter-spacing:.16em;text-transform:uppercase;margin-bottom:14px;font-weight:500}
+.col-section{margin-bottom:24px}.col-section:last-child{margin-bottom:0}
+
+/* TASKS */
+.task-row{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--bg-2);transition:background var(--tr);border-radius:var(--r-sm)}
+.task-row:last-child{border-bottom:none}
+.task-row:hover{background:rgba(255,255,255,.6);padding-left:8px;padding-right:8px;margin:0 -8px}
+.task-marker{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--border-2);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--tr)}
+.task-marker:hover{border-color:var(--gold)}
+.task-marker.checked{border-color:var(--gold)}
+.task-marker.checked::after{content:'✓';font-size:10px;font-weight:600;color:var(--gold)}
+.task-marker.urgent{border-color:var(--terra)}
+.task-marker.urgent .inner-dot{width:7px;height:7px;border-radius:50%;background:var(--terra)}
+.task-body{flex:1;min-width:0}
+.task-text{font-size:13px;color:var(--text-2);line-height:1.45}
+.task-text.done{color:var(--text-5);text-decoration:line-through}
+.task-sub{font-size:11px;color:var(--text-4);margin-top:2px}
+.deadline-badge{font-size:11px;white-space:nowrap;padding:2px 8px;border-radius:10px;background:var(--bg-2);color:var(--text-3);flex-shrink:0;margin-top:3px}
+.deadline-badge.oggi{background:#FEEDE9;color:var(--terra);font-weight:500}
+.deadline-badge.urgente{background:var(--gold-light);color:var(--gold);font-weight:500}
+.deadline-badge.scaduto{background:var(--terra-bg);color:var(--terra)}
+.expand-toggle{font-size:10px;color:var(--text-5);cursor:pointer;padding:0 3px;flex-shrink:0;margin-top:4px;transition:transform var(--tr);display:block}
+.expand-toggle.open{transform:rotate(90deg)}
+.subtasks-wrap{margin:2px 0 6px 29px;border-left:1.5px solid var(--border);padding-left:12px}
+.subtask-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bg-2)}
+.subtask-row:last-child{border-bottom:none}
+.sub-marker{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--border-2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.sub-marker.checked{border-color:var(--gold)}
+.sub-marker.checked::after{content:'✓';font-size:8px;font-weight:700;color:var(--gold)}
+.sub-text{flex:1;font-size:12px;color:var(--text-2)}
+.sub-text.done{color:var(--text-5);text-decoration:line-through}
+.sub-dead{font-size:10px;color:var(--text-4)}
+.add-row{display:flex;align-items:center;gap:6px;padding:7px 0 0;font-size:12px;color:var(--text-4);cursor:pointer;border:none;background:transparent;font-family:var(--font-sans);transition:color var(--tr)}
+.add-row:hover{color:var(--gold)}
+
+/* CALENDAR */
+.cal-wrap{padding:0 28px 24px;border-bottom:1px solid var(--border);animation:fadeUp .4s ease .05s both}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-title{font-family:var(--font-serif);font-size:16px;color:var(--text-1)}
+.cal-controls{display:flex;gap:6px;align-items:center}
+.cal-nav{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:13px;color:var(--text-3);display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.cal-nav:hover{border-color:var(--gold);color:var(--gold)}
+.cal-view-toggle{display:flex;gap:2px;background:var(--bg-3);padding:3px;border-radius:var(--r-pill)}
+.cal-view-btn{padding:4px 12px;border-radius:var(--r-pill);font-size:11px;font-family:var(--font-sans);border:none;cursor:pointer;color:var(--text-3);background:transparent;transition:var(--tr)}
+.cal-view-btn.active{background:var(--white);color:var(--text-1);font-weight:500}
+.cal-grid-month{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day-name{text-align:center;font-size:10px;color:var(--text-4);letter-spacing:.06em;text-transform:uppercase;padding:4px 0 6px}
+.cal-day{min-height:52px;background:var(--white);border:1px solid var(--border);border-radius:var(--r-sm);padding:5px;cursor:default;transition:border-color var(--tr);position:relative}
+.cal-day.other-month{background:transparent;border-color:transparent}
+.cal-day.today-cell{border-color:var(--gold)!important}
+.cal-day-num{font-size:11px;font-weight:500;color:var(--text-3);margin-bottom:3px}
+.cal-day.today-cell .cal-day-num{color:var(--gold);font-weight:700}
+.cal-day.other-month .cal-day-num{color:var(--text-5)}
+.cal-dot-wrap{display:flex;flex-wrap:wrap;gap:2px}
+.cal-dot{height:5px;border-radius:3px;flex:1;min-width:5px;max-width:100%}
+.cal-dot.col-oggi{background:var(--oggi-color)}
+.cal-dot.col-sett{background:var(--sett-color)}
+.cal-dot.col-mese{background:var(--mese-color)}
+.cal-dot.done-dot{opacity:.3}
+
+/* WEEK VIEW */
+.cal-grid-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal-week-day{background:var(--white);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px;min-height:80px;transition:border-color var(--tr)}
+.cal-week-day.today-cell{border-color:var(--gold)}
+.cal-week-header{display:flex;flex-direction:column;align-items:center;margin-bottom:6px}
+.cal-week-dn{font-size:10px;color:var(--text-4);text-transform:uppercase;letter-spacing:.06em}
+.cal-week-num{font-size:16px;font-family:var(--font-serif);color:var(--text-1);line-height:1}
+.cal-week-day.today-cell .cal-week-num{color:var(--gold)}
+.cal-event{font-size:10px;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:white;font-weight:500}
+.cal-event.col-oggi{background:var(--oggi-color)}
+.cal-event.col-sett{background:var(--sett-color)}
+.cal-event.col-mese{background:var(--mese-color)}
+.cal-event.done-event{opacity:.4;text-decoration:line-through}
+.cal-legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-3)}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+
+/* PRATICHE */
+.pratiche-wrap{padding:22px 28px;max-width:820px;animation:fadeUp .4s ease .1s both}
+.pratica-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:10px;overflow:hidden;transition:border-color var(--tr)}
+.pratica-card:hover{border-color:var(--border-2)}
+.pratica-header{display:flex;align-items:center;padding:14px 16px;cursor:pointer;gap:12px}
+.pratica-status{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.status-open{background:var(--gold-mid)}.status-done{background:var(--gold)}
+.pratica-names{flex:1}
+.pratica-title{font-family:var(--font-serif);font-size:15px;color:var(--text-1);line-height:1.3}
+.pratica-title em{font-style:italic;color:var(--gold)}
+.pratica-addr{font-size:11px;color:var(--text-4);margin-top:2px}
+.pratica-right{text-align:right;flex-shrink:0}
+.pratica-val{font-family:var(--font-serif);font-size:15px;color:var(--text-1)}
+.pratica-mediazione{font-size:11px;color:var(--gold);margin-top:1px}
+.pratica-expand{font-size:12px;color:var(--text-5);transition:transform var(--tr)}
+.pratica-expand.open{transform:rotate(90deg)}
+.pratica-body{border-top:1px solid var(--border)}
+.ptabs{display:flex;border-bottom:1px solid var(--bg-2)}
+.ptab{flex:1;padding:9px 10px;text-align:center;font-size:12px;color:var(--text-4);cursor:pointer;border-bottom:2px solid transparent;transition:var(--tr);font-family:var(--font-sans)}
+.ptab:hover{color:var(--text-2)}.ptab.active{color:var(--text-1);border-bottom-color:var(--gold);font-weight:500}
+.ptab-content{padding:14px 16px}
+.doc-row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--bg-2)}
+.doc-row:last-child{border-bottom:none}
+.doc-check{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border-2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.doc-check:hover{border-color:var(--gold)}.doc-check.checked{background:var(--gold);border-color:var(--gold)}
+.doc-check.checked::after{content:'✓';color:var(--white);font-size:10px;font-weight:500}
+.doc-label{flex:1;font-size:13px;color:var(--text-2)}.doc-label.done{color:var(--text-5);text-decoration:line-through}
+.doc-del{width:20px;height:20px;border-radius:50%;border:none;background:transparent;color:var(--text-5);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);flex-shrink:0}
+.doc-del:hover{background:var(--terra-bg);color:var(--terra)}
+.pay-row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--bg-2);gap:10px}
+.pay-row:last-child{border-bottom:none}
+.pay-body{flex:1}.pay-desc{font-size:13px;color:var(--text-2)}.pay-meta{font-size:11px;color:var(--text-4);margin-top:1px}
+.pay-right{display:flex;align-items:center;gap:7px}
+.pay-amt{font-family:var(--font-serif);font-size:15px;color:var(--text-1);white-space:nowrap}
+.pay-tag{font-size:10px;padding:2px 7px;border-radius:8px;white-space:nowrap}
+.tag-compravendita{background:var(--gold-light);color:var(--gold-dark)}
+.tag-mediazione{background:#EEF4E8;color:#4A7A2E}
+.tag-spesa{background:var(--bg-2);color:var(--text-3)}
+.pay-del{width:20px;height:20px;border-radius:50%;border:none;background:transparent;color:var(--text-5);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);flex-shrink:0}
+.pay-del:hover{background:var(--terra-bg);color:var(--terra)}
+.totale-section{margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.totale-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.totale-label{font-size:12px;color:var(--text-3)}.totale-val{font-family:var(--font-serif);font-size:16px}
+.totale-val.gold{color:var(--gold)}.totale-val.red{color:var(--terra)}.totale-val.green{color:#4A7A2E}
+.saldo-ok{font-size:11px;color:var(--gold);padding:4px 0}
+.mediazione-box{background:var(--gold-light);border:1px solid #E8D5B5;border-radius:var(--r-sm);padding:10px 12px;margin-bottom:12px}
+.mediazione-box label{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.08em;display:block;margin-bottom:6px}
+.med-row{display:flex;align-items:center;gap:8px}
+.med-input{width:68px;font-size:13px;padding:6px 8px;border:1px solid var(--border-2);border-radius:var(--r-sm);background:var(--white);color:var(--text-1);font-family:var(--font-sans);text-align:right}
+.med-input:focus{outline:none;border-color:var(--gold)}
+.med-result{font-family:var(--font-serif);font-size:16px;color:var(--gold-dark)}
+.med-label{font-size:12px;color:var(--text-3)}
+.section-divider{font-size:10px;color:var(--text-5);letter-spacing:.12em;text-transform:uppercase;margin:12px 0 6px;padding-top:8px;border-top:1px solid var(--bg-2)}
+
+/* CRONOLOGIA */
+.crono-wrap{padding:22px 28px;animation:fadeUp .4s ease .1s both}
+.crono-filter{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.crono-filter-btn{padding:5px 14px;border-radius:var(--r-pill);font-size:12px;font-family:var(--font-sans);border:1px solid var(--border);background:transparent;cursor:pointer;color:var(--text-3);transition:var(--tr)}
+.crono-filter-btn.active{background:var(--gold);border-color:var(--gold);color:var(--white)}
+.crono-group{margin-bottom:22px}
+.crono-group-title{font-size:11px;color:var(--text-4);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.crono-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--bg-2)}
+.crono-item:last-child{border-bottom:none}
+.crono-icon{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;margin-top:1px}
+.icon-priority{background:var(--gold-light);color:var(--gold)}
+.icon-pratica{background:#EEF4E8;color:#4A7A2E}
+.icon-doc{background:#EDF2FB;color:#3A62A7}
+.icon-payment{background:var(--terra-bg);color:var(--terra)}
+.crono-body{flex:1}
+.crono-title{font-size:13px;color:var(--text-2);line-height:1.4}
+.crono-meta{font-size:11px;color:var(--text-4);margin-top:2px}
+.crono-time{font-size:11px;color:var(--text-5);flex-shrink:0;margin-top:3px}
+.crono-empty{text-align:center;padding:48px 20px;color:var(--text-4);font-size:14px}
+.crono-empty-icon{font-size:32px;margin-bottom:10px}
+
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(26,22,18,.3);z-index:200;align-items:center;justify-content:center}
+.modal-backdrop.open{display:flex}
+.modal{background:var(--white);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;width:380px;max-width:95vw;animation:fadeUp .2s ease both;max-height:90vh;overflow-y:auto}
+.modal h3{font-family:var(--font-serif);font-size:21px;margin-bottom:18px;color:var(--text-1)}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11px;color:var(--text-3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;font-size:13px;padding:8px 11px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg);color:var(--text-1);font-family:var(--font-sans);transition:border-color var(--tr)}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gold-mid)}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.btn-cancel{padding:8px 16px;border:1px solid var(--border);border-radius:var(--r-sm);background:transparent;font-size:13px;cursor:pointer;color:var(--text-3);font-family:var(--font-sans);transition:var(--tr)}
+.btn-cancel:hover{background:var(--bg-2)}
+.btn-save{padding:8px 20px;border:none;border-radius:var(--r-sm);background:var(--gold);color:var(--white);font-size:13px;cursor:pointer;font-weight:500;font-family:var(--font-sans);transition:var(--tr)}
+.btn-save:hover{background:var(--gold-dark)}
+
+/* BOTTOM */
+.bottombar{background:var(--bg-2);padding:12px 28px;display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border)}
+.add-actions{display:flex;gap:18px}
+.add-quick{font-size:12px;color:var(--gold);cursor:pointer;border:none;background:transparent;font-family:var(--font-sans);transition:color var(--tr);padding:0}
+.add-quick:hover{color:var(--gold-dark)}
+.version{font-size:10px;color:var(--text-5);letter-spacing:.08em}
+.add-pratica-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border:1px dashed var(--border-2);border-radius:var(--r-md);background:transparent;font-size:13px;cursor:pointer;width:100%;color:var(--text-3);font-family:var(--font-sans);margin-top:4px;transition:var(--tr)}
+.add-pratica-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-light)}
+.empty{text-align:left;padding:14px 0;color:var(--text-4);font-size:13px}
+.prog-wrap{display:flex;align-items:center;gap:10px}
+.prog-bg{flex:1;height:2px;background:var(--bg-2);border-radius:2px}
+.prog-fill{height:2px;border-radius:2px;background:var(--gold)}
+.prog-pct{font-size:10px;color:var(--text-4);white-space:nowrap}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:700px){
+  .topbar{padding:0 14px}.topbar-date{display:none}
+  .nav-btn{padding:5px 10px;font-size:11px}
+  .hero{padding:18px 14px 16px;flex-direction:column;align-items:flex-start}
+  .hero-stats{width:100%}.stat-card{flex:1;text-align:left}
+  .main-grid{grid-template-columns:1fr}
+  .col{padding:18px 14px}.col+.col{border-left:none;border-top:1px solid var(--border)}
+  .cal-wrap,.pratiche-wrap,.crono-wrap{padding:18px 14px}
+  .bottombar{padding:10px 14px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="logo">Im<em>·</em>Desk</div>
+    <nav class="nav-pills">
+      <button class="nav-btn active" onclick="showPage('agenda',this)">Agenda</button>
+      <button class="nav-btn" onclick="showPage('pratiche',this)">Pratiche</button>
+      <button class="nav-btn" onclick="showPage('cronologia',this)">Cronologia</button>
+    </nav>
+    <div class="topbar-date" id="topbar-date"></div>
+  </header>
+
+  <!-- AGENDA -->
+  <div id="page-agenda" class="page active">
+    <div class="hero">
+      <div>
+        <div class="hero-eyebrow" id="hero-saluto">Buongiorno</div>
+        <div class="hero-title" id="hero-title">Caricamento…</div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-card"><div class="stat-num accent" id="stat-oggi">0</div><div class="stat-label">Oggi</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-pratiche">0</div><div class="stat-label">Pratiche</div></div>
+        <div class="stat-card"><div class="stat-num" id="stat-mediazioni">—</div><div class="stat-label">Mediazioni</div></div>
+      </div>
+    </div>
+
+    <!-- CALENDARIO -->
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <div class="cal-title" id="cal-title">Maggio 2025</div>
+        <div class="cal-controls">
+          <button class="cal-nav" onclick="calNav(-1)">‹</button>
+          <button class="cal-nav" onclick="calNav(1)">›</button>
+          <div class="cal-view-toggle">
+            <button class="cal-view-btn active" id="btn-view-mese" onclick="setCalView('mese')">Mese</button>
+            <button class="cal-view-btn" id="btn-view-sett" onclick="setCalView('settimana')">Settimana</button>
+          </div>
+        </div>
+      </div>
+      <div id="cal-body"></div>
+      <div class="cal-legend">
+        <div class="leg-item"><div class="leg-dot" style="background:var(--oggi-color)"></div> Priorità oggi</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--sett-color)"></div> Questa settimana</div>
+        <div class="leg-item"><div class="leg-dot" style="background:var(--mese-color)"></div> Questo mese</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div class="col">
+        <div class="col-section">
+          <div class="col-label">Oggi</div>
+          <div id="list-oggi"></div>
+          <button class="add-row" onclick="openAddPriority('oggi')">＋ Aggiungi priorità</button>
+        </div>
+        <div class="col-section">
+          <div class="col-label">Questa settimana</div>
+          <div id="list-settimana"></div>
+          <button class="add-row" onclick="openAddPriority('settimana')">＋ Aggiungi priorità</button>
+        </div>
+        <div class="col-section">
+          <div class="col-label">Questo mese</div>
+          <div id="list-mese"></div>
+          <button class="add-row" onclick="openAddPriority('mese')">＋ Aggiungi priorità</button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-label">Pratiche attive</div>
+        <div id="pratiche-preview"></div>
+        <button class="add-row" onclick="showPage('pratiche',document.querySelectorAll('.nav-btn')[1]);openAddPratica()">＋ Nuova pratica</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRATICHE -->
+  <div id="page-pratiche" class="page">
+    <div class="pratiche-wrap">
+      <div id="pratiche-list"></div>
+      <button class="add-pratica-btn" onclick="openAddPratica()">＋ Nuova pratica</button>
+    </div>
+  </div>
+
+  <!-- CRONOLOGIA -->
+  <div id="page-cronologia" class="page">
+    <div class="crono-wrap">
+      <div class="crono-filter">
+        <button class="crono-filter-btn active" onclick="setCronoFilter('tutti',this)">Tutti</button>
+        <button class="crono-filter-btn" onclick="setCronoFilter('priorita',this)">Priorità</button>
+        <button class="crono-filter-btn" onclick="setCronoFilter('pratiche',this)">Pratiche</button>
+        <button class="crono-filter-btn" onclick="setCronoFilter('documenti',this)">Documenti</button>
+        <button class="crono-filter-btn" onclick="setCronoFilter('pagamenti',this)">Pagamenti</button>
+      </div>
+      <div id="crono-list"></div>
+    </div>
+  </div>
+
+  <footer class="bottombar">
+    <div class="add-actions">
+      <button class="add-quick" onclick="openAddPriority('oggi')">＋ Priorità oggi</button>
+      <button class="add-quick" onclick="showPage('pratiche',document.querySelectorAll('.nav-btn')[1]);openAddPratica()">＋ Nuova pratica</button>
+    </div>
+    <div class="version">ImDesk v1.0 · uso personale</div>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeModalOutside(event)">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<script>
+// ── DATI DEFAULT ──
+const DOCS_ACQ_DEFAULT=["Documento d'identità","Codice fiscale","Stato civile / estratto atto di matrimonio","Procura notarile (se necessaria)","Proposta d'acquisto firmata","Preliminare di compravendita","Compromesso registrato","Documentazione mutuo / pre-approvazione banca","Copia assegni / bonifici caparra","Recapiti e PEC"];
+const DOCS_VEND_DEFAULT=["Documento d'identità","Codice fiscale","Atto di provenienza immobile","Visura catastale aggiornata","Planimetria catastale","Certificato di agibilità","APE (Attestato Prestazione Energetica)","Documenti condominiali / liberatoria morosità","Cancellazione ipoteche","Copia chiavi e attestati impianti"];
+
+let state={priorities:{oggi:[],settimana:[],mese:[]},pratiche:[],cronologia:[]};
+try{const s=localStorage.getItem('imdesk_v4');if(s)state=JSON.parse(s);}catch(e){}
+if(!state.cronologia)state.cronologia=[];
+function save(){try{localStorage.setItem('imdesk_v4',JSON.stringify(state));}catch(e){}}
+
+// ── CRONOLOGIA LOG ──
+function logEvent(tipo,titolo,dettaglio){
+  state.cronologia.unshift({id:Date.now(),tipo,titolo,dettaglio,ts:new Date().toISOString()});
+  if(state.cronologia.length>200)state.cronologia=state.cronologia.slice(0,200);
+}
+
+// ── DATE ──
+const GG=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+const GG_SHORT=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+const MM=['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const MM_CAP=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+
+function nowDate(){const d=new Date();d.setHours(0,0,0,0);return d;}
+function fmtDate(s){if(!s)return'';const d=new Date(s);return d.getDate()+'/'+(d.getMonth()+1)+'/'+String(d.getFullYear()).slice(2);}
+function fmtTs(s){if(!s)return'';const d=new Date(s);return d.getDate()+' '+MM[d.getMonth()]+' '+String(d.getFullYear()).slice(2)+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function fmtEur(n){return(n||0).toLocaleString('it-IT');}
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+function deadlineInfo(s){
+  if(!s)return{label:'',cls:''};
+  const today=nowDate();
+  const d=new Date(s);d.setHours(0,0,0,0);
+  const diff=Math.round((d-today)/86400000);
+  if(diff<0)return{label:'Scaduto',cls:'scaduto'};
+  if(diff===0)return{label:'Oggi',cls:'oggi'};
+  if(diff<=3)return{label:'Tra '+diff+'g',cls:'urgente'};
+  return{label:fmtDate(s),cls:''};
+}
+
+function updateDate(){
+  const d=new Date();
+  document.getElementById('topbar-date').textContent=GG[d.getDay()]+', '+d.getDate()+' '+MM[d.getMonth()]+' '+d.getFullYear();
+  const h=d.getHours();
+  document.getElementById('hero-saluto').textContent=h<12?'Buongiorno':h<18?'Buon pomeriggio':'Buonasera';
+}
+
+// ── CALENDARIO ──
+let calView='mese';
+let calOffset=0; // mesi o settimane
+
+function setCalView(v){
+  calView=v;calOffset=0;
+  document.getElementById('btn-view-mese').classList.toggle('active',v==='mese');
+  document.getElementById('btn-view-sett').classList.toggle('active',v==='settimana');
+  renderCal();
+}
+function calNav(dir){calOffset+=dir;renderCal();}
+
+// Raccoglie tutti gli eventi con data e gruppo
+function getAllEvents(){
+  const evs=[];
+  ['oggi','settimana','mese'].forEach(g=>{
+    state.priorities[g].forEach(p=>{
+      if(p.deadline)evs.push({date:p.deadline,title:p.title,group:g,done:p.done});
+      p.subtasks.forEach(s=>{
+        if(s.deadline)evs.push({date:s.deadline,title:s.title,group:g,done:s.done||p.done});
+      });
+    });
+  });
+  return evs;
+}
+
+function groupColor(g){return g==='oggi'?'col-oggi':g==='settimana'?'col-sett':'col-mese';}
+
+function renderCal(){
+  const body=document.getElementById('cal-body');
+  const titleEl=document.getElementById('cal-title');
+  const evs=getAllEvents();
+  const today=nowDate();
+
+  if(calView==='mese'){
+    const ref=new Date(today.getFullYear(),today.getMonth()+calOffset,1);
+    titleEl.textContent=MM_CAP[ref.getMonth()]+' '+ref.getFullYear();
+    const firstDay=(ref.getDay()+6)%7; // lunedì=0
+    const daysInMonth=new Date(ref.getFullYear(),ref.getMonth()+1,0).getDate();
+
+    let html='<div class="cal-grid-month">';
+    ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'].forEach(d=>{html+=`<div class="cal-day-name">${d}</div>`;});
+
+    // celle vuote prima
+    for(let i=0;i<firstDay;i++) html+=`<div class="cal-day other-month"><div class="cal-day-num"></div></div>`;
+
+    for(let d=1;d<=daysInMonth;d++){
+      const dateStr=isoDate(new Date(ref.getFullYear(),ref.getMonth(),d));
+      const isToday=dateStr===isoDate(today);
+      const dayEvs=evs.filter(e=>e.date===dateStr);
+      const dots=dayEvs.map(e=>`<div class="cal-dot ${groupColor(e.group)} ${e.done?'done-dot':''}"></div>`).join('');
+      html+=`<div class="cal-day${isToday?' today-cell':''}">
+        <div class="cal-day-num">${d}</div>
+        <div class="cal-dot-wrap">${dots}</div>
+      </div>`;
+    }
+    html+='</div>';
+    body.innerHTML=html;
+
+  } else {
+    // SETTIMANA
+    const dayOfWeek=(today.getDay()+6)%7;
+    const monday=new Date(today);monday.setDate(today.getDate()-dayOfWeek+calOffset*7);
+
+    const startStr=monday.getDate()+' '+MM[monday.getMonth()];
+    const endDay=new Date(monday);endDay.setDate(monday.getDate()+6);
+    const endStr=endDay.getDate()+' '+MM[endDay.getMonth()]+' '+endDay.getFullYear();
+    titleEl.textContent=startStr+' – '+endStr;
+
+    let html='<div class="cal-grid-week">';
+    for(let i=0;i<7;i++){
+      const day=new Date(monday);day.setDate(monday.getDate()+i);
+      const dateStr=isoDate(day);
+      const isToday=dateStr===isoDate(today);
+      const dayEvs=evs.filter(e=>e.date===dateStr);
+      const eventHtml=dayEvs.map(e=>`<div class="cal-event ${groupColor(e.group)} ${e.done?'done-event':''}" title="${e.title}">${e.title}</div>`).join('');
+      html+=`<div class="cal-week-day${isToday?' today-cell':''}">
+        <div class="cal-week-header">
+          <div class="cal-week-dn">${GG_SHORT[day.getDay()]}</div>
+          <div class="cal-week-num">${day.getDate()}</div>
+        </div>
+        ${eventHtml}
+      </div>`;
+    }
+    html+='</div>';
+    body.innerHTML=html;
+  }
+}
+
+// ── NAV ──
+let cronoFilter='tutti';
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='agenda'){renderAgenda();renderCal();}
+  if(id==='pratiche')renderPratiche();
+  if(id==='cronologia')renderCronologia();
+}
+
+// ── MODAL ──
+function openModal(html){
+  document.getElementById('modal-box').innerHTML=html;
+  document.getElementById('modal-backdrop').classList.add('open');
+  setTimeout(()=>{const f=document.querySelector('#modal-box input,#modal-box select');if(f)f.focus();},50);
+}
+function closeModal(){document.getElementById('modal-backdrop').classList.remove('open');}
+function closeModalOutside(e){if(e.target===document.getElementById('modal-backdrop'))closeModal();}
+
+// ── PRIORITIES ──
+function openAddPriority(group){
+  openModal(`<h3>Nuova priorità</h3>
+    <div class="field"><label>Titolo</label><input id="m-title" placeholder="Es. Chiamare il notaio"></div>
+    <div class="field"><label>Scadenza</label><input id="m-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="savePriority('${group}')">Aggiungi</button>
+    </div>`);
+}
+function savePriority(group){
+  const t=document.getElementById('m-title').value.trim();
+  const d=document.getElementById('m-date').value;
+  if(!t)return;
+  state.priorities[group].push({id:Date.now(),title:t,deadline:d,done:false,open:false,subtasks:[]});
+  logEvent('priorita','Priorità aggiunta',t);
+  save();closeModal();renderAgenda();renderCal();
+}
+
+function togglePriority(group,id){
+  const p=state.priorities[group].find(x=>x.id===id);
+  if(!p)return;
+  p.done=!p.done;
+  if(p.done){
+    // Segna tutte le sotto-priorità come completate
+    p.subtasks.forEach(s=>s.done=true);
+    logEvent('priorita','Priorità completata',p.title);
+  } else {
+    // Riapre le sotto-priorità
+    p.subtasks.forEach(s=>s.done=false);
+  }
+  save();renderAgenda();renderCal();
+}
+
+function toggleExpand(group,id){
+  const p=state.priorities[group].find(x=>x.id===id);
+  if(p){p.open=!p.open;renderAgenda();}
+}
+function openAddSub(group,pid){
+  openModal(`<h3>Sotto-priorità</h3>
+    <div class="field"><label>Titolo</label><input id="m-title" placeholder="Es. Richiedere documento"></div>
+    <div class="field"><label>Scadenza</label><input id="m-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="saveSub('${group}',${pid})">Aggiungi</button>
+    </div>`);
+}
+function saveSub(group,pid){
+  const t=document.getElementById('m-title').value.trim();
+  const d=document.getElementById('m-date').value;
+  if(!t)return;
+  const p=state.priorities[group].find(x=>x.id===pid);
+  if(p){p.subtasks.push({id:Date.now(),title:t,deadline:d,done:false});p.open=true;}
+  logEvent('priorita','Sotto-priorità aggiunta',t);
+  save();closeModal();renderAgenda();renderCal();
+}
+function toggleSub(group,pid,sid){
+  const p=state.priorities[group].find(x=>x.id===pid);
+  if(!p)return;
+  const s=p.subtasks.find(x=>x.id===sid);
+  if(s){
+    s.done=!s.done;
+    if(s.done)logEvent('priorita','Sotto-priorità completata',s.title);
+    save();renderAgenda();renderCal();
+  }
+}
+
+function renderPriorityList(group,containerId){
+  const el=document.getElementById(containerId);if(!el)return;
+  const items=state.priorities[group];
+  if(!items.length){el.innerHTML='<div class="empty">Nessuna priorità</div>';return;}
+  el.innerHTML=items.map(p=>{
+    const di=deadlineInfo(p.deadline);
+    const badge=di.label?`<span class="deadline-badge ${di.cls}">${di.label}</span>`:'';
+    const mc=p.done?'checked':(di.cls==='urgente'||di.cls==='scaduto'?'urgent':'');
+    const inner=mc==='urgent'&&!p.done?'<div class="inner-dot"></div>':'';
+    // Sotto-priorità: mostrate solo se padre NON completato
+    const visibleSubs=p.done?[]:p.subtasks;
+    const subs=visibleSubs.map(s=>{
+      const sdi=deadlineInfo(s.deadline);
+      return`<div class="subtask-row">
+        <div class="sub-marker ${s.done?'checked':''}" onclick="toggleSub('${group}',${p.id},${s.id})"></div>
+        <span class="sub-text ${s.done?'done':''}">${s.title}</span>
+        ${sdi.label?`<span class="sub-dead">${sdi.label}</span>`:''}
+      </div>`;
+    }).join('');
+    const addSubBtn=!p.done?`<button class="add-row" style="padding:5px 0 2px" onclick="openAddSub('${group}',${p.id})">＋ Sotto-priorità</button>`:'';
+    return`<div>
+      <div class="task-row">
+        <div class="task-marker ${mc}" onclick="togglePriority('${group}',${p.id})">${inner}</div>
+        <div class="task-body"><div class="task-text ${p.done?'done':''}">${p.title}</div></div>
+        ${badge}
+        ${!p.done&&p.subtasks.length?`<span class="expand-toggle ${p.open?'open':''}" onclick="toggleExpand('${group}',${p.id})">▶</span>`:''}
+      </div>
+      ${p.open&&!p.done?`<div class="subtasks-wrap">${subs}${addSubBtn}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── PRATICHE ──
+function openAddPratica(){
+  openModal(`<h3>Nuova pratica</h3>
+    <div class="field"><label>Nome venditore</label><input id="m-vend" placeholder="Laura Bianchi"></div>
+    <div class="field"><label>Nome acquirente</label><input id="m-acq" placeholder="Mario Rossi"></div>
+    <div class="field"><label>Indirizzo immobile</label><input id="m-addr" placeholder="Via Roma 1, Milano"></div>
+    <div class="field"><label>Prezzo di compravendita (€)</label><input id="m-val" type="number" placeholder="250000" min="0"></div>
+    <div class="field"><label>% Mediazione agente</label><input id="m-pct" type="number" placeholder="4" min="0" max="100" step="0.1"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="savePratica()">Crea pratica</button>
+    </div>`);
+}
+function savePratica(){
+  const vend=document.getElementById('m-vend').value.trim();
+  const acq=document.getElementById('m-acq').value.trim();
+  const addr=document.getElementById('m-addr').value.trim();
+  const val=parseFloat(document.getElementById('m-val').value)||0;
+  const pct=parseFloat(document.getElementById('m-pct').value)||0;
+  if(!acq||!vend)return;
+  state.pratiche.push({id:Date.now(),venditore:vend,acquirente:acq,indirizzo:addr,valore:val,percentualeMediazione:pct,
+    docsAcq:DOCS_ACQ_DEFAULT.map((d,i)=>({id:i,label:d,checked:false})),
+    docsVend:DOCS_VEND_DEFAULT.map((d,i)=>({id:i,label:d,checked:false})),
+    payments:[],open:false,activeTab:'docs_vend',status:'open'});
+  logEvent('pratica','Pratica creata',vend+' → '+acq+(addr?' · '+addr:''));
+  save();closeModal();renderAgenda();
+  if(document.getElementById('page-pratiche').classList.contains('active'))renderPratiche();
+}
+function togglePraticaOpen(id){
+  const p=state.pratiche.find(x=>x.id===id);if(p){p.open=!p.open;renderPratiche();}
+}
+function setPraticaTab(id,tab){
+  const p=state.pratiche.find(x=>x.id===id);if(p){p.activeTab=tab;renderPratiche();}
+}
+function toggleDoc(pid,type,docId){
+  const p=state.pratiche.find(x=>x.id===pid);if(!p)return;
+  const arr=type==='acq'?p.docsAcq:p.docsVend;
+  const d=arr.find(x=>x.id===docId);
+  if(d){
+    d.checked=!d.checked;
+    if(d.checked)logEvent('documento','Documento spuntato',d.label+' — '+(type==='acq'?p.acquirente:p.venditore));
+    save();renderPratiche();renderAgenda();
+  }
+}
+function deleteDoc(pid,type,docId){
+  const p=state.pratiche.find(x=>x.id===pid);if(!p)return;
+  if(type==='acq')p.docsAcq=p.docsAcq.filter(x=>x.id!==docId);
+  else p.docsVend=p.docsVend.filter(x=>x.id!==docId);
+  save();renderPratiche();
+}
+function openAddDoc(pid,type){
+  openModal(`<h3>Aggiungi documento</h3>
+    <div class="field"><label>Nome documento</label><input id="m-doc" placeholder="Es. Visura ipocatastale"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="saveDoc(${pid},'${type}')">Aggiungi</button>
+    </div>`);
+}
+function saveDoc(pid,type){
+  const label=document.getElementById('m-doc').value.trim();if(!label)return;
+  const p=state.pratiche.find(x=>x.id===pid);if(!p)return;
+  const arr=type==='acq'?p.docsAcq:p.docsVend;
+  arr.push({id:Date.now(),label,checked:false});
+  logEvent('documento','Documento aggiunto',label);
+  save();closeModal();renderPratiche();
+}
+function openAddPayment(pid){
+  openModal(`<h3>Aggiungi pagamento</h3>
+    <div class="field"><label>Tipo</label>
+      <select id="m-tipo"><option value="compravendita">Compravendita</option><option value="mediazione">Mediazione / Provvigione</option><option value="spesa">Spesa accessoria</option></select>
+    </div>
+    <div class="field"><label>Descrizione</label><input id="m-desc" placeholder="Es. Caparra confirmatoria"></div>
+    <div class="field"><label>Importo (€)</label><input id="m-amt" type="number" placeholder="10000" min="0"></div>
+    <div class="field"><label>Metodo</label>
+      <select id="m-met"><option>Bonifico bancario</option><option>Assegno circolare</option><option>Assegno bancario</option><option>Contanti</option><option>Altro</option></select>
+    </div>
+    <div class="field"><label>Data</label><input id="m-pdate" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Annulla</button>
+      <button class="btn-save" onclick="savePayment(${pid})">Aggiungi</button>
+    </div>`);
+}
+function savePayment(pid){
+  const tipo=document.getElementById('m-tipo').value;
+  const desc=document.getElementById('m-desc').value.trim();
+  const amt=parseFloat(document.getElementById('m-amt').value)||0;
+  const met=document.getElementById('m-met').value;
+  const dt=document.getElementById('m-pdate').value;
+  if(!desc||!amt)return;
+  const p=state.pratiche.find(x=>x.id===pid);
+  if(p){
+    p.payments.push({id:Date.now(),tipo,desc,amount:amt,method:met,date:dt});
+    logEvent('pagamento','Pagamento registrato','€ '+fmtEur(amt)+' · '+desc+' ('+met+')');
+  }
+  save();closeModal();renderPratiche();renderAgenda();
+}
+function deletePayment(pid,payId){
+  const p=state.pratiche.find(x=>x.id===pid);if(!p)return;
+  p.payments=p.payments.filter(x=>x.id!==payId);
+  save();renderPratiche();renderAgenda();
+}
+function updateMediazione(pid){
+  const p=state.pratiche.find(x=>x.id===pid);if(!p)return;
+  const inp=document.getElementById('med-pct-'+pid);if(!inp)return;
+  p.percentualeMediazione=parseFloat(inp.value)||0;
+  save();
+  const res=document.getElementById('med-res-'+pid);
+  if(res)res.textContent='€ '+fmtEur(Math.round(p.valore*(p.percentualeMediazione/100)));
+}
+
+// ── RENDER AGENDA ──
+function renderAgenda(){
+  renderPriorityList('oggi','list-oggi');
+  renderPriorityList('settimana','list-settimana');
+  renderPriorityList('mese','list-mese');
+  document.getElementById('stat-oggi').textContent=state.priorities.oggi.filter(p=>!p.done).length;
+  document.getElementById('stat-pratiche').textContent=state.pratiche.filter(p=>p.status==='open').length;
+  const totMed=state.pratiche.reduce((a,p)=>a+p.payments.filter(x=>x.tipo==='mediazione').reduce((b,x)=>b+x.amount,0),0);
+  document.getElementById('stat-mediazioni').textContent=totMed>0?'€'+(totMed>=1000000?(totMed/1000000).toFixed(1)+'M':totMed>=1000?Math.round(totMed/1000)+'k':totMed):'—';
+  const oggiCount=state.priorities.oggi.filter(p=>!p.done).length;
+  const pratAp=state.pratiche.filter(p=>p.status==='open').length;
+  let title='';
+  if(oggiCount===0&&pratAp===0)title='Tutto in regola.<br>Ottimo lavoro!';
+  else if(oggiCount===0)title=`Nessuna priorità oggi<br>e <em>${pratAp} ${pratAp===1?'pratica aperta':'pratiche aperte'}</em>`;
+  else title=`Hai <em>${oggiCount} priorità</em> oggi${pratAp>0?'<br>e '+pratAp+' '+(pratAp===1?'pratica aperta':'pratiche aperte'):''}`;
+  document.getElementById('hero-title').innerHTML=title;
+  const prev=document.getElementById('pratiche-preview');if(!prev)return;
+  const aperte=state.pratiche.filter(p=>p.status==='open').slice(0,3);
+  if(!aperte.length){prev.innerHTML='<div class="empty">Nessuna pratica</div>';return;}
+  prev.innerHTML=aperte.map(p=>{
+    const tot=p.docsAcq.length+p.docsVend.length;
+    const done=p.docsAcq.filter(d=>d.checked).length+p.docsVend.filter(d=>d.checked).length;
+    const pct=tot?Math.round(done/tot*100):0;
+    const med=p.percentualeMediazione?Math.round(p.valore*(p.percentualeMediazione/100)):0;
+    return`<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px">
+      <div style="font-family:var(--font-serif);font-size:14px;color:var(--text-1);margin-bottom:2px">${p.venditore} <em style="font-style:italic;color:var(--gold)">→</em> ${p.acquirente}</div>
+      <div style="font-size:11px;color:var(--text-4);margin-bottom:10px">${p.indirizzo||'Indirizzo non specificato'}</div>
+      <div class="prog-wrap">
+        <div style="flex:1"><div style="font-size:10px;color:var(--text-4);margin-bottom:4px">${done}/${tot} documenti</div>
+          <div class="prog-bg"><div class="prog-fill" style="width:${pct}%"></div></div></div>
+        ${med>0?`<div style="font-family:var(--font-serif);font-size:13px;color:var(--gold)">Med. € ${fmtEur(med)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── RENDER PRATICHE ──
+function renderPratiche(){
+  const el=document.getElementById('pratiche-list');if(!el)return;
+  if(!state.pratiche.length){el.innerHTML='<div class="empty" style="padding:40px 0;text-align:center">Nessuna pratica. Creane una!</div>';return;}
+  el.innerHTML=state.pratiche.map(p=>{
+    const pagCV=p.payments.filter(x=>x.tipo==='compravendita');
+    const pagMed=p.payments.filter(x=>x.tipo==='mediazione');
+    const totCV=pagCV.reduce((a,x)=>a+x.amount,0);
+    const totMed=pagMed.reduce((a,x)=>a+x.amount,0);
+    const saldoCV=(p.valore||0)-totCV;
+    const medCalcolata=p.percentualeMediazione?Math.round(p.valore*(p.percentualeMediazione/100)):0;
+    const dA=p.docsAcq.filter(d=>d.checked).length,dV=p.docsVend.filter(d=>d.checked).length;
+    const totDoc=p.docsAcq.length+p.docsVend.length,doneDoc=dA+dV;
+    const pctDoc=totDoc?Math.round(doneDoc/totDoc*100):0;
+    let body='';
+    if(p.open){
+      const tabLabels={docs_vend:`Venditore (${dV}/${p.docsVend.length})`,docs_acq:`Acquirente (${dA}/${p.docsAcq.length})`,pagamenti:'Pagamenti'};
+      const tabsHtml=Object.keys(tabLabels).map(t=>`<div class="ptab ${p.activeTab===t?'active':''}" onclick="setPraticaTab(${p.id},'${t}')">${tabLabels[t]}</div>`).join('');
+      let content='';
+      if(p.activeTab==='docs_vend'||p.activeTab==='docs_acq'){
+        const type=p.activeTab==='docs_vend'?'vend':'acq';
+        const arr=type==='vend'?p.docsVend:p.docsAcq;
+        content=arr.map(d=>`<div class="doc-row">
+          <div class="doc-check ${d.checked?'checked':''}" onclick="toggleDoc(${p.id},'${type}',${d.id})"></div>
+          <span class="doc-label ${d.checked?'done':''}">${d.label}</span>
+          <button class="doc-del" onclick="deleteDoc(${p.id},'${type}',${d.id})" title="Rimuovi">✕</button>
+        </div>`).join('');
+        content+=`<button class="add-row" style="margin-top:8px" onclick="openAddDoc(${p.id},'${type}')">＋ Aggiungi documento</button>`;
+      } else {
+        const tagLabel={compravendita:'Compravendita',mediazione:'Mediazione',spesa:'Spesa'};
+        const tagClass={compravendita:'tag-compravendita',mediazione:'tag-mediazione',spesa:'tag-spesa'};
+        content+=`<div class="mediazione-box"><label>Calcolo mediazione</label>
+          <div class="med-row">
+            <span class="med-label">% su € ${fmtEur(p.valore)}</span>
+            <input class="med-input" id="med-pct-${p.id}" type="number" value="${p.percentualeMediazione||''}" placeholder="4" min="0" max="100" step="0.1" oninput="updateMediazione(${p.id})">
+            <span style="font-size:13px;color:var(--text-3)">=</span>
+            <span class="med-result" id="med-res-${p.id}">€ ${fmtEur(medCalcolata)}</span>
+          </div></div>`;
+        const gruppi=[{tipo:'compravendita',label:'Pagamenti compravendita',items:pagCV},{tipo:'mediazione',label:'Provvigioni / Mediazione',items:pagMed},{tipo:'spesa',label:'Spese accessorie',items:p.payments.filter(x=>x.tipo==='spesa')}].filter(g=>g.items.length);
+        content+=gruppi.map(g=>`<div class="section-divider">${g.label}</div>${g.items.map(pay=>`
+          <div class="pay-row">
+            <div class="pay-body"><div class="pay-desc">${pay.desc}</div><div class="pay-meta">${pay.method} · ${fmtDate(pay.date)}</div></div>
+            <div class="pay-right">
+              <span class="pay-tag ${tagClass[pay.tipo]}">${tagLabel[pay.tipo]}</span>
+              <span class="pay-amt">€ ${fmtEur(pay.amount)}</span>
+              <button class="pay-del" onclick="deletePayment(${p.id},${pay.id})" title="Rimuovi">✕</button>
+            </div>
+          </div>`).join('')}`).join('');
+        content+=`<div class="totale-section">
+          <div class="totale-row" style="border-bottom:1px solid var(--bg-2);padding-bottom:8px;margin-bottom:4px">
+            <span class="totale-label" style="font-weight:500;color:var(--text-2)">Prezzo compravendita</span>
+            <span class="totale-val">€ ${fmtEur(p.valore)}</span>
+          </div>
+          <div class="totale-row"><span class="totale-label">Versato (compravendita)</span><span class="totale-val gold">€ ${fmtEur(totCV)}</span></div>
+          ${saldoCV>0?`<div class="totale-row"><span class="totale-label">Saldo residuo</span><span class="totale-val red">€ ${fmtEur(saldoCV)}</span></div>`:`<div class="saldo-ok">Compravendita saldata ✓</div>`}
+          ${medCalcolata>0?`<div class="totale-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bg-2)">
+            <span class="totale-label">Mediazione prevista (${p.percentualeMediazione}%)</span>
+            <span class="totale-val" style="color:var(--gold-dark)">€ ${fmtEur(medCalcolata)}</span>
+          </div>`:''}
+          ${totMed>0?`<div class="totale-row"><span class="totale-label">Mediazione incassata</span><span class="totale-val green">€ ${fmtEur(totMed)}</span></div>`:''}
+        </div>
+        <div style="margin-top:12px"><button class="add-pratica-btn" onclick="openAddPayment(${p.id})">＋ Aggiungi pagamento</button></div>`;
+      }
+      body=`<div class="pratica-body"><div class="ptabs">${tabsHtml}</div><div class="ptab-content">${content}</div></div>`;
+    }
+    return`<div class="pratica-card">
+      <div class="pratica-header" onclick="togglePraticaOpen(${p.id})">
+        <div class="pratica-status ${p.status==='done'?'status-done':'status-open'}"></div>
+        <div class="pratica-names">
+          <div class="pratica-title">${p.venditore} <em>→</em> ${p.acquirente}</div>
+          <div class="pratica-addr">${p.indirizzo||'Indirizzo non specificato'} · ${doneDoc}/${totDoc} doc · ${pctDoc}%</div>
+        </div>
+        <div class="pratica-right">
+          <div class="pratica-val">€ ${fmtEur(p.valore)}</div>
+          ${medCalcolata>0?`<div class="pratica-mediazione">Med. € ${fmtEur(medCalcolata)}</div>`:''}
+        </div>
+        <span class="pratica-expand ${p.open?'open':''}">▶</span>
+      </div>${body}
+    </div>`;
+  }).join('');
+}
+
+// ── CRONOLOGIA ──
+function setCronoFilter(f,btn){
+  cronoFilter=f;
+  document.querySelectorAll('.crono-filter-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderCronologia();
+}
+
+function renderCronologia(){
+  const el=document.getElementById('crono-list');if(!el)return;
+  const tipoMap={priorita:'priorita',pratica:'pratiche',documento:'documenti',pagamento:'pagamenti'};
+  const iconMap={priorita:{cls:'icon-priority',ico:'☑'},pratica:{cls:'icon-pratica',ico:'🏠'},documento:{cls:'icon-doc',ico:'📄'},pagamento:{cls:'icon-payment',ico:'€'}};
+  let items=state.cronologia;
+  if(cronoFilter!=='tutti'){
+    const inv=Object.fromEntries(Object.entries(tipoMap).map(([k,v])=>[v,k]));
+    const tipo=inv[cronoFilter];
+    items=items.filter(x=>x.tipo===tipo);
+  }
+  if(!items.length){
+    el.innerHTML=`<div class="crono-empty"><div class="crono-empty-icon">📋</div>Nessuna azione registrata ancora.<br><span style="font-size:12px;color:var(--text-5)">Le azioni appariranno qui man mano che lavori.</span></div>`;
+    return;
+  }
+  // Raggruppa per giorno
+  const byDay={};
+  items.forEach(item=>{
+    const d=new Date(item.ts);
+    const key=isoDate(d);
+    if(!byDay[key])byDay[key]=[];
+    byDay[key].push(item);
+  });
+  const today=isoDate(nowDate());
+  const yesterday=isoDate(new Date(nowDate().getTime()-86400000));
+  el.innerHTML=Object.entries(byDay).map(([day,evs])=>{
+    const label=day===today?'Oggi':day===yesterday?'Ieri':fmtDate(day);
+    const rows=evs.map(e=>{
+      const ic=iconMap[e.tipo]||{cls:'icon-priority',ico:'•'};
+      return`<div class="crono-item">
+        <div class="crono-icon ${ic.cls}">${ic.ico}</div>
+        <div class="crono-body">
+          <div class="crono-title">${e.titolo}</div>
+          <div class="crono-meta">${e.dettaglio}</div>
+        </div>
+        <div class="crono-time">${fmtTs(e.ts).split(' ').slice(-1)[0]}</div>
+      </div>`;
+    }).join('');
+    return`<div class="crono-group"><div class="crono-group-title">${label}</div>${rows}</div>`;
+  }).join('');
+}
+
+// ── INIT ──
+updateDate();
+renderAgenda();
+renderCal();
+</script>
+</body>
+</html>

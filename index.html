@@ -162,9 +162,10 @@ button,a,[onclick] { touch-action:manipulation }
 .nav-btn:active { transform: none !important; opacity: .7 }
 
 @media(max-width:768px) {
-  .topbar { padding: 0 16px !important; min-height: calc(58px + env(safe-area-inset-top)) !important }
-  .topbar-logo { font-size:19px; margin-right:20px }
-  .nav-btn { padding: 0 13px !important; font-size:13px !important }
+  .topbar { padding: 0 10px !important; min-height: calc(54px + env(safe-area-inset-top)) !important }
+  .topbar-logo { display: none }
+  .nav-pills { justify-content: space-between }
+  .nav-btn { padding: 0 10px !important; font-size:12.5px !important; flex: 1; text-align:center }
   .topbar-date { display:none }
 }
 

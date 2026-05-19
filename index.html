@@ -36,6 +36,152 @@ html, body { overflow-x: hidden; }
   .page, .app { overflow-x: hidden !important; max-width: 100% !important; }
   .todo-text, .todo-body { word-break: break-word !important; overflow-wrap: anywhere !important; }
 }
+
+/* ══════════════════════════════════════
+   ENHANCED UI INTERACTIONS — Im·Desk
+   ══════════════════════════════════════ */
+
+/* Global */
+html { scroll-behavior: smooth }
+* { -webkit-tap-highlight-color: transparent }
+button, a, [onclick] { touch-action: manipulation }
+
+/* Page entry animation */
+.page.active { animation: pageIn .22s cubic-bezier(.4,0,.2,1) both }
+@keyframes pageIn { from { opacity:0; transform:translateY(7px) } to { opacity:1; transform:translateY(0) } }
+
+/* Modal — backdrop + entry */
+.modal-backdrop { backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px) }
+.modal-backdrop.open { animation: bdIn .18s ease both }
+@keyframes bdIn { from { opacity:0 } to { opacity:1 } }
+.modal { animation: modalIn .3s cubic-bezier(.34,1.3,.64,1) both }
+@keyframes modalIn { from { opacity:0; transform:translateY(18px) scale(.96) } to { opacity:1; transform:translateY(0) scale(1) } }
+
+/* Input focus glow */
+.field input:focus, .field select:focus, .field textarea:focus,
+.todo-input:focus, .sub-todo-input:focus, .add-pri-input:focus,
+.med-field input:focus, .med-field select:focus, .med-note-input:focus {
+  box-shadow: 0 0 0 3px rgba(232,114,26,.14) !important;
+  transition: border-color .15s ease, box-shadow .15s ease !important;
+}
+
+/* Button press feel — scale down on active */
+.btn-save:active, .add-notizia-btn:active, .add-pri-btn:active,
+.todo-add-btn:active, .sub-todo-btn:active, .add-pratica-btn:active,
+.cal-nav:active, .crono-filter-btn:active { transform: scale(.95) !important }
+.btn-cancel:active, .notizie-sort-btn:active { transform: scale(.97) !important }
+
+/* Ripple container for primary buttons */
+.btn-save, .add-notizia-btn { position:relative; overflow:hidden }
+.imdesk-ripple {
+  position:absolute; border-radius:50%; transform:scale(0);
+  animation:rippleAnim .55s linear; background:rgba(255,255,255,.22);
+  pointer-events:none; z-index:0
+}
+@keyframes rippleAnim { to { transform:scale(4); opacity:0 } }
+
+/* Checkbox / doc-check bounce on done */
+@keyframes checkBounce {
+  0%  { transform:scale(.6) }
+  55% { transform:scale(1.18) }
+  80% { transform:scale(.95) }
+  100%{ transform:scale(1) }
+}
+.todo-check.done, .doc-check.checked, .pri-check.done,
+.sub-todo-check.done, .pri-sub-check.done {
+  animation: checkBounce .32s cubic-bezier(.34,1.2,.64,1)
+}
+
+/* Card list item stagger */
+.pratica-card, .notizia-card, .crono-item { animation: cardIn .2s ease both }
+@keyframes cardIn { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:translateY(0) } }
+
+/* Pratica / incarico body expand */
+.pratica-body { animation: expandIn .22s cubic-bezier(.4,0,.2,1) both }
+@keyframes expandIn { from { opacity:0; transform:translateY(-5px) } to { opacity:1; transform:translateY(0) } }
+
+/* Day popup */
+.day-popup.visible { animation: popupIn .2s ease both }
+@keyframes popupIn { from { opacity:0; transform:scaleY(.95); transform-origin:top } to { opacity:1; transform:scaleY(1) } }
+
+/* Stat card clickable press */
+.stat-card.clickable { transition: transform .18s cubic-bezier(.34,1.2,.64,1), border-color var(--tr), background var(--tr), box-shadow var(--tr) }
+.stat-card.clickable:active { transform: scale(.96) }
+
+/* Calendar day press */
+.cal-day:active, .cal-week-day:active { transform: scale(.96); transition: transform .1s ease }
+
+/* Nav pill active indicator smooth */
+.nav-btn { transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .1s ease }
+.nav-btn:active { transform: scale(.94) }
+
+/* Quick actions footer */
+.add-quick { transition: color .15s ease, transform .1s ease }
+.add-quick:active { transform: scale(.92) }
+
+/* Call deadline box */
+.call-deadline-box { transition: transform .18s cubic-bezier(.34,1.2,.64,1), border-color var(--tr), background var(--tr) }
+.call-deadline-box:active { transform: scale(.95) }
+.call-oggi, .call-scaduto { animation: urgentPulse 2.2s ease-in-out infinite }
+@keyframes urgentPulse {
+  0%,100% { box-shadow: none }
+  50% { box-shadow: 0 0 0 5px rgba(232,114,26,.12) }
+}
+
+/* Form error shake */
+@keyframes formShake {
+  0%,100% { transform:translateX(0) }
+  20%,60%  { transform:translateX(-5px) }
+  40%,80%  { transform:translateX(5px) }
+}
+.shake { animation: formShake .38s ease }
+
+/* Smooth summary number update */
+.stat-num { transition: color .25s ease }
+
+/* Toast notification */
+.imdesk-toast {
+  position:fixed; bottom:88px; left:50%;
+  transform: translateX(-50%) translateY(14px);
+  opacity:0; padding:11px 22px; border-radius:12px;
+  font-size:13px; font-family:var(--font-sans); font-weight:500;
+  z-index:9999; box-shadow:0 8px 28px rgba(0,0,0,.22);
+  transition: opacity .28s ease, transform .32s cubic-bezier(.34,1.3,.64,1);
+  white-space:nowrap; pointer-events:none; letter-spacing:.01em;
+}
+.imdesk-toast.show { transform:translateX(-50%) translateY(0); opacity:1 }
+.imdesk-toast.success { background:#266226; color:#fff }
+.imdesk-toast.info    { background:#1A4A9E; color:#fff }
+.imdesk-toast.warning { background:#C0392B; color:#fff }
+
+/* Add item input row smooth expand */
+.todo-input, .add-pri-input {
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+/* Hero title counter animation */
+@keyframes numPop {
+  0%   { transform:scale(1) }
+  50%  { transform:scale(1.15) }
+  100% { transform:scale(1) }
+}
+.stat-num.updated { animation: numPop .3s cubic-bezier(.34,1.2,.64,1) }
+
+/* Smooth scroll containers */
+.ptabs, .nav-pills { scroll-behavior: smooth }
+
+/* Progress bar for doc completion */
+.doc-prog-bar { height:2px; background:var(--bg-2); border-radius:2px; margin-top:4px; overflow:hidden }
+.doc-prog-fill { height:100%; background:linear-gradient(90deg, var(--gold-mid), var(--gold)); border-radius:2px; transition:width .5s cubic-bezier(.4,0,.2,1) }
+
+/* Bottom bar add buttons */
+.add-quick { position:relative; overflow:hidden }
+
+/* Pratica header expand arrow — smoother */
+.pratica-expand, .pri-expand {
+  display:inline-block;
+  transition: transform .25s cubic-bezier(.4,0,.2,1)
+}
 </style>
 </head>
 <body>
@@ -2435,6 +2581,241 @@ document.addEventListener('DOMContentLoaded',safeInit);
 }else{
 safeInit();
 }
+
+/* ═══════════════════════════════════════
+   ENHANCED UI INTERACTIONS — Im·Desk
+   ═══════════════════════════════════════ */
+
+// ── Toast notification system ──────────────────────────────────────────────
+function showToast(msg, type='success') {
+  // Remove any existing toast
+  document.querySelectorAll('.imdesk-toast').forEach(t => t.remove());
+  const toast = document.createElement('div');
+  toast.className = 'imdesk-toast ' + type;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('show'));
+  });
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 350);
+  }, 3200);
+}
+
+// ── Ripple effect on primary buttons ─────────────────────────────────────
+function addRipple(e, el) {
+  const rect = el.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  const r = document.createElement('span');
+  r.className = 'imdesk-ripple';
+  r.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  el.appendChild(r);
+  setTimeout(() => r.remove(), 600);
+}
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.btn-save, .add-notizia-btn');
+  if (btn) addRipple(e, btn);
+});
+
+// ── Animated stat counter ─────────────────────────────────────────────────
+function animateStatNum(el, newVal) {
+  if (!el) return;
+  if (el.textContent === newVal) return;
+  el.classList.remove('updated');
+  el.textContent = newVal;
+  void el.offsetWidth; // reflow
+  el.classList.add('updated');
+  setTimeout(() => el.classList.remove('updated'), 350);
+}
+
+// Patch updateStats to use animated counter
+const _origUpdateStats = updateStats;
+updateStats = function() {
+  _origUpdateStats();
+  // The numbers were already written by _origUpdateStats — just trigger animation
+  ['stat-todo','stat-pratiche','stat-mediazioni'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.classList.remove('updated'); void el.offsetWidth; el.classList.add('updated'); }
+  });
+};
+
+// ── Smooth page transitions ────────────────────────────────────────────────
+const _origShowPage = showPage;
+showPage = function(id, btn) {
+  // Reset page animation by re-triggering
+  const page = document.getElementById('page-' + id);
+  if (page) {
+    page.style.animation = 'none';
+    void page.offsetWidth;
+    page.style.animation = '';
+  }
+  _origShowPage(id, btn);
+};
+
+// ── Login form shake on error ──────────────────────────────────────────────
+const _origShowErr = showErr;
+showErr = function(el, msg) {
+  _origShowErr(el, msg);
+  const form = el.closest('#form-accedi, #form-registrati, #form-reset');
+  if (form) {
+    form.classList.remove('shake');
+    void form.offsetWidth;
+    form.classList.add('shake');
+    setTimeout(() => form.classList.remove('shake'), 400);
+  }
+};
+
+// ── Replace old basic toast in creaaPraticaDaIncarico ─────────────────────
+const _origCreaaPratica = creaaPraticaDaIncarico;
+creaaPraticaDaIncarico = function(incId) {
+  const inc = state.incarichi.find(x => x.id === incId);
+  if (!inc || !inc.acquirenteNome) return;
+  if (state.pratiche.find(p => p._incaricoId === incId)) return;
+  _origCreaaPratica(incId);
+  // Remove the old toast if it was created inside, show our better one
+  setTimeout(() => {
+    document.querySelectorAll('div[style*="bottom:80px"][style*="background:#2E6B2E"]').forEach(t => t.remove());
+    showToast('⚖️ Pratica creata! ' + inc.nome + ' → ' + inc.acquirenteNome, 'success');
+  }, 50);
+};
+
+// ── Keyboard shortcut: Escape closes modal ────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const bd = document.getElementById('modal-backdrop');
+    if (bd && bd.classList.contains('open')) closeModal();
+  }
+});
+
+// ── Smooth doc progress bar injection ────────────────────────────────────
+// After renderPratiche / renderIncarichi, inject progress bars under doc tab headers
+function injectDocProgress() {
+  document.querySelectorAll('.ptab-content').forEach(ptc => {
+    const rows = ptc.querySelectorAll('.doc-row');
+    if (!rows.length) return;
+    const total = rows.length;
+    const done = ptc.querySelectorAll('.doc-check.checked').length;
+    let bar = ptc.querySelector('.doc-prog-bar');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.className = 'doc-prog-bar';
+      bar.innerHTML = '<div class="doc-prog-fill"></div>';
+      ptc.insertBefore(bar, ptc.firstChild);
+    }
+    const fill = bar.querySelector('.doc-prog-fill');
+    if (fill) fill.style.width = (total ? Math.round(done/total*100) : 0) + '%';
+  });
+}
+
+// Patch render functions to inject progress after render
+const _origRenderPratiche = renderPratiche;
+renderPratiche = function() {
+  _origRenderPratiche();
+  requestAnimationFrame(injectDocProgress);
+};
+const _origRenderIncarichi = renderIncarichi;
+renderIncarichi = function() {
+  _origRenderIncarichi();
+  requestAnimationFrame(injectDocProgress);
+};
+
+// ── Add item input: shake if empty on submit ──────────────────────────────
+const _origAddTodo = addTodo;
+addTodo = function() {
+  const inp = document.getElementById('todo-main-input');
+  if (inp && !inp.value.trim()) {
+    inp.classList.remove('shake');
+    void inp.offsetWidth;
+    inp.classList.add('shake');
+    inp.focus();
+    setTimeout(() => inp.classList.remove('shake'), 400);
+    return;
+  }
+  _origAddTodo();
+};
+
+// ── Smooth toggle for checkboxes — reset animation ───────────────────────
+const _origToggleTodo = toggleTodo;
+toggleTodo = function(id) {
+  _origToggleTodo(id);
+};
+const _origToggleDoc = toggleDoc;
+toggleDoc = function(pid, type, docId) {
+  _origToggleDoc(pid, type, docId);
+  requestAnimationFrame(injectDocProgress);
+};
+
+// ── Better scroll-to on focusTodo ────────────────────────────────────────
+const _origFocusTodo = focusTodo;
+focusTodo = function() {
+  showPage('agenda', document.querySelectorAll('.nav-btn')[0]);
+  setTimeout(() => {
+    const i = document.getElementById('todo-main-input');
+    if (i) {
+      i.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => i.focus(), 180);
+    }
+  }, 80);
+};
+
+// ── Mobile: touch-action manipulation added via CSS (see style block) ─────
+// No JS needed — handled with touch-action:manipulation in CSS
+
+// ── Stagger card animations on list renders ──────────────────────────────
+function staggerCards(containerSel) {
+  const cards = document.querySelectorAll(containerSel + ' > .pratica-card, ' + containerSel + ' > .notizia-card, ' + containerSel + ' > .notizie-month-group .notizia-card');
+  cards.forEach((card, i) => {
+    card.style.animationDelay = (i * 40) + 'ms';
+  });
+}
+
+const _origRenderNotizie = renderNotizie;
+renderNotizie = function() {
+  _origRenderNotizie();
+  requestAnimationFrame(() => staggerCards('#notizie-list'));
+};
+const _origRenderValutazioni = renderValutazioni;
+renderValutazioni = function() {
+  _origRenderValutazioni();
+  requestAnimationFrame(() => staggerCards('#valutazioni-list'));
+};
+const _origRender2Pratiche = renderPratiche;
+renderPratiche = function() {
+  _origRender2Pratiche();
+  requestAnimationFrame(() => {
+    staggerCards('#pratiche-list');
+    injectDocProgress();
+  });
+};
+
+// ── Smooth loading overlay with spinner ──────────────────────────────────
+const _origShowLoadingOverlay = showLoadingOverlay;
+showLoadingOverlay = function(show) {
+  _origShowLoadingOverlay(show);
+  const ov = document.getElementById('loading-overlay');
+  if (ov && show) {
+    // Add animated spinner if not present
+    if (!ov.querySelector('.ld-spinner')) {
+      const sp = document.createElement('div');
+      sp.className = 'ld-spinner';
+      sp.style.cssText = 'width:32px;height:32px;border:3px solid rgba(255,255,255,.15);border-top-color:#E8721A;border-radius:50%;animation:ldSpin .7s linear infinite';
+      const style = document.createElement('style');
+      style.textContent = '@keyframes ldSpin{to{transform:rotate(360deg)}}';
+      document.head.appendChild(style);
+      ov.appendChild(sp);
+    }
+  }
+};
+
+// ── User bar refresh button spin animation ───────────────────────────────
+const _origRefreshData = refreshData;
+refreshData = async function() {
+  const btn = document.querySelector('#user-bar button[title="Aggiorna dati"]');
+  if (btn) btn.style.animation = 'ldSpin .7s linear infinite';
+  await _origRefreshData();
+  if (btn) btn.style.animation = '';
+};
 </script>
 </body>
 </html>

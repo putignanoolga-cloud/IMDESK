@@ -1903,59 +1903,56 @@ function scheduleItemNotif(title, body, timeStr, dateStr){
 if(!timeStr)return;
 if(!('serviceWorker' in navigator))return;
 if(Notification.permission!=='granted')return;
-const now=new Date();
 const target=new Date();
 if(dateStr){const p=dateStr.split('-');target.setFullYear(+p[0],+p[1]-1,+p[2]);}
 const tp=timeStr.split(':');
 target.setHours(+tp[0],+tp[1],0,0);
-const ms=target.getTime()-now.getTime();
-if(ms<=0)return;
-// Schedule via Service Worker for background delivery
+const fireAt=target.getTime();
+if(fireAt<=Date.now())return;
+const id='imdesk-'+title+'-'+fireAt;
 navigator.serviceWorker.ready.then(reg=>{
 if(reg.active){
-reg.active.postMessage({type:'SCHEDULE',title:'Im·Desk — '+title,body:body||title,delay:ms});
-} else {
-// Fallback
-setTimeout(()=>{if(Notification.permission==='granted')new Notification('Im·Desk — '+title,{body:body||title});},ms);
+reg.active.postMessage({type:'SCHEDULE',id,title:'Im·Desk — '+title,body:body||title,fireAt});
 }
-}).catch(()=>{
-setTimeout(()=>{if(Notification.permission==='granted')new Notification('Im·Desk — '+title,{body:body||title});},ms);
-});
+}).catch(()=>{});
 }
 
 function scheduleAllNotifs(){
 if(!('Notification' in window))return;
 Notification.requestPermission().then(perm=>{
 if(perm!=='granted'){
-// Show iOS instructions if needed
 if(/iPhone|iPad|iPod/.test(navigator.userAgent)&&!window.navigator.standalone){
 console.log('iOS: aggiungi alla Home Screen per le notifiche');
 }
 return;
 }
-// Register SW
-if('serviceWorker' in navigator){
+if(!('serviceWorker' in navigator))return;
 navigator.serviceWorker.register('/sw.js').then(reg=>{
 window._swReg=reg;
-}).catch(()=>{});
+// Clear old scheduled notifications before re-scheduling
+if(reg.active)reg.active.postMessage({type:'CLEAR_ALL'});
+// Register for Periodic Background Sync (Chrome Android)
+if('periodicSync' in reg){
+reg.periodicSync.register('imdesk-check',{minInterval:15*60*1000}).catch(()=>{});
 }
 const today=isoDate(nowDate());
-// Schedule todos with time
+// Give SW a moment to clear before re-scheduling
+setTimeout(()=>{
 state.todos.filter(t=>!t.done&&t.time).forEach(t=>{
 const d=t.deadline||today;
 scheduleItemNotif(t.title,'📋 Attività da gestire — '+t.title,t.time,d);
 });
-// Schedule subtodos with time
 state.todos.forEach(t=>{
 (t.subtodos||[]).filter(s=>!s.done&&s.time).forEach(s=>{
 const d=s.deadline||today;
 scheduleItemNotif(s.title,'📋 '+s.title,s.time,d);
 });
 });
-// Schedule notizie call reminders
 state.notizie.filter(n=>n.dataChiamata&&n.oraChiamata).forEach(n=>{
 scheduleItemNotif('Chiama '+n.nome,'📞 '+n.nome+(n.tel?' · '+n.tel:''),n.oraChiamata,n.dataChiamata);
 });
+},300);
+}).catch(()=>{});
 });
 }
 

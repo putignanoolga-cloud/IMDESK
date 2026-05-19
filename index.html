@@ -37,151 +37,302 @@ html, body { overflow-x: hidden; }
   .todo-text, .todo-body { word-break: break-word !important; overflow-wrap: anywhere !important; }
 }
 
-/* ══════════════════════════════════════
-   ENHANCED UI INTERACTIONS — Im·Desk
-   ══════════════════════════════════════ */
+/* ══════════════════════════════════════════════════
+   WOW UI — Im·Desk  (interactivity + visual layer)
+   ══════════════════════════════════════════════════ */
 
-/* Global */
-html { scroll-behavior: smooth }
-* { -webkit-tap-highlight-color: transparent }
-button, a, [onclick] { touch-action: manipulation }
+/* ─── Base ─────────────────────────────────────── */
+html { scroll-behavior:smooth }
+* { -webkit-tap-highlight-color:transparent }
+button,a,[onclick] { touch-action:manipulation }
 
-/* Page entry animation */
-.page.active { animation: pageIn .22s cubic-bezier(.4,0,.2,1) both }
-@keyframes pageIn { from { opacity:0; transform:translateY(7px) } to { opacity:1; transform:translateY(0) } }
+/* ─── Login page — animated orb background ─────── */
+#login-page { overflow:hidden }
+#login-page::before, #login-page::after {
+  content:''; position:absolute; border-radius:50%; pointer-events:none; z-index:0;
+  filter:blur(80px); opacity:.18;
+}
+#login-page::before {
+  width:500px; height:500px; top:-120px; left:-100px;
+  background:radial-gradient(circle, #E8721A, #1A4A9E);
+  animation:orbFloat 8s ease-in-out infinite alternate;
+}
+#login-page::after {
+  width:400px; height:400px; bottom:-80px; right:-80px;
+  background:radial-gradient(circle, #3A62A7, #E8721A);
+  animation:orbFloat 11s ease-in-out infinite alternate-reverse;
+}
+@keyframes orbFloat {
+  from { transform:translate(0,0) scale(1) }
+  to   { transform:translate(30px,20px) scale(1.08) }
+}
+#login-page > div { position:relative; z-index:1 }
 
-/* Modal — backdrop + entry */
-.modal-backdrop { backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px) }
-.modal-backdrop.open { animation: bdIn .18s ease both }
-@keyframes bdIn { from { opacity:0 } to { opacity:1 } }
-.modal { animation: modalIn .3s cubic-bezier(.34,1.3,.64,1) both }
-@keyframes modalIn { from { opacity:0; transform:translateY(18px) scale(.96) } to { opacity:1; transform:translateY(0) scale(1) } }
+/* Login card — glass */
+#login-page > div > div:nth-child(2) {
+  background: rgba(30,58,95,.85) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  box-shadow: 0 32px 80px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08) !important;
+}
 
-/* Input focus glow */
+/* Login logo animated entrance */
+#login-page .logo-wrap, #login-page > div > div:first-child {
+  animation: loginLogoIn .6s cubic-bezier(.34,1.3,.64,1) both;
+}
+@keyframes loginLogoIn {
+  from { opacity:0; transform:translateY(-20px) scale(.9) }
+  to   { opacity:1; transform:translateY(0) scale(1) }
+}
+#login-page > div > div:nth-child(2) { animation:loginCardIn .5s .1s cubic-bezier(.34,1.2,.64,1) both }
+@keyframes loginCardIn {
+  from { opacity:0; transform:translateY(24px) }
+  to   { opacity:1; transform:translateY(0) }
+}
+
+/* ─── Topbar — blur glass strip ────────────────── */
+.topbar {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  background: rgba(13,27,46,.92) !important;
+}
+
+/* Nav pill — gradient active */
+.nav-btn.active {
+  background: linear-gradient(135deg, #F0904A 0%, #E8721A 60%, #C05A0A 100%) !important;
+  box-shadow: 0 2px 14px rgba(232,114,26,.45), 0 0 0 1px rgba(255,255,255,.08) inset !important;
+}
+.nav-btn { transition: background .22s ease, color .22s ease, box-shadow .22s ease, transform .1s ease }
+.nav-btn:active { transform:scale(.93) }
+
+/* ─── Page entry ────────────────────────────────── */
+.page.active { animation:pageIn .26s cubic-bezier(.4,0,.2,1) both }
+@keyframes pageIn { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:none } }
+
+/* ─── Hero ──────────────────────────────────────── */
+.hero {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 100%) !important;
+  position: relative; overflow:hidden;
+}
+.hero::after {
+  content:''; position:absolute; right:-60px; top:-60px;
+  width:220px; height:220px; border-radius:50%;
+  background: radial-gradient(circle, rgba(232,114,26,.07), transparent 70%);
+  pointer-events:none;
+}
+
+/* ─── Stat cards — gradient accent ─────────────── */
+.stat-card {
+  border-top: 3px solid var(--border) !important;
+  transition: transform .22s cubic-bezier(.34,1.2,.64,1), border-color .18s ease, box-shadow .22s ease !important;
+  position:relative; overflow:hidden;
+}
+.stat-card::before {
+  content:''; position:absolute; inset:0; opacity:0;
+  background: linear-gradient(135deg, rgba(232,114,26,.04), transparent);
+  transition:opacity .22s ease; pointer-events:none;
+}
+.stat-card.clickable:hover {
+  border-top-color: var(--gold) !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 8px 24px rgba(232,114,26,.18) !important;
+}
+.stat-card.clickable:hover::before { opacity:1 }
+.stat-card.clickable:active { transform:scale(.96) !important }
+
+.stat-num {
+  font-size:26px !important;
+  transition: color .25s ease;
+  letter-spacing:-.02em;
+}
+.stat-num.accent { color:var(--gold) }
+
+/* ─── Cards — left accent bar + hover lift ──────── */
+.pratica-card, .notizia-card {
+  border-left: 3px solid var(--border) !important;
+  transition: border-color .18s ease, box-shadow .22s ease, transform .18s cubic-bezier(.34,1.2,.64,1) !important;
+}
+.pratica-card:hover, .notizia-card:hover {
+  border-left-color: var(--gold) !important;
+  box-shadow: 0 6px 20px rgba(13,27,46,.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Card animate-in stagger */
+.pratica-card, .notizia-card { animation:cardIn .22s ease both }
+@keyframes cardIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+
+/* ─── Todo items — refined ──────────────────────── */
+.todo-item { border-radius:8px; margin-bottom:2px; padding:8px !important; transition:background .15s ease }
+.todo-item:hover { background:var(--bg) }
+.todo-check {
+  width:20px !important; height:20px !important;
+  border-radius:6px !important; border:2px solid var(--border-2) !important;
+  transition: background .18s ease, border-color .18s ease, transform .18s cubic-bezier(.34,1.5,.64,1) !important;
+}
+.todo-check:hover { border-color:var(--gold) !important; transform:scale(1.1) }
+.todo-check.done {
+  background:var(--gold) !important; border-color:var(--gold) !important;
+  animation:checkBounce .32s cubic-bezier(.34,1.3,.64,1) !important;
+}
+.todo-check.done::after { content:'✓'; font-size:11px; font-weight:700; color:#fff }
+
+@keyframes checkBounce {
+  0%  { transform:scale(.5) }
+  55% { transform:scale(1.22) }
+  80% { transform:scale(.94) }
+  100%{ transform:scale(1) }
+}
+
+/* ─── Doc check animated ────────────────────────── */
+.doc-check { transition: background .15s ease, border-color .15s ease, transform .18s cubic-bezier(.34,1.4,.64,1) !important }
+.doc-check:hover { transform:scale(1.1); border-color:var(--gold) !important }
+.doc-check.checked { animation:checkBounce .3s cubic-bezier(.34,1.3,.64,1) }
+
+/* ─── Modal — glass + spring ────────────────────── */
+.modal-backdrop {
+  background: rgba(13,27,46,.4) !important;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+.modal-backdrop.open { animation:bdIn .2s ease both }
+@keyframes bdIn { from{opacity:0} to{opacity:1} }
+.modal {
+  border-radius: 20px !important;
+  box-shadow: 0 32px 80px rgba(0,0,0,.22), 0 2px 8px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.6) !important;
+  animation: modalIn .32s cubic-bezier(.34,1.25,.64,1) both !important;
+}
+@keyframes modalIn { from { opacity:0; transform:translateY(28px) scale(.94) } to { opacity:1; transform:none scale(1) } }
+
+/* Mobile bottom-sheet modal */
+@media(max-width:768px) {
+  .modal-backdrop { align-items:flex-end !important }
+  .modal {
+    width:100% !important; max-width:100% !important;
+    border-bottom-left-radius: 0 !important; border-bottom-right-radius: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important;
+    animation: sheetIn .32s cubic-bezier(.34,1.15,.64,1) both !important;
+  }
+  .modal::before {
+    content:''; display:block; width:40px; height:4px;
+    background:var(--border-2); border-radius:2px; margin:0 auto 20px;
+  }
+  @keyframes sheetIn { from { opacity:0; transform:translateY(100%) } to { opacity:1; transform:none } }
+}
+
+/* ─── Input focus ring ──────────────────────────── */
 .field input:focus, .field select:focus, .field textarea:focus,
 .todo-input:focus, .sub-todo-input:focus, .add-pri-input:focus,
 .med-field input:focus, .med-field select:focus, .med-note-input:focus {
-  box-shadow: 0 0 0 3px rgba(232,114,26,.14) !important;
-  transition: border-color .15s ease, box-shadow .15s ease !important;
+  box-shadow: 0 0 0 3px rgba(232,114,26,.16) !important;
+  border-color: var(--gold-mid) !important;
 }
 
-/* Button press feel — scale down on active */
-.btn-save:active, .add-notizia-btn:active, .add-pri-btn:active,
-.todo-add-btn:active, .sub-todo-btn:active, .add-pratica-btn:active,
-.cal-nav:active, .crono-filter-btn:active { transform: scale(.95) !important }
-.btn-cancel:active, .notizie-sort-btn:active { transform: scale(.97) !important }
+/* ─── Buttons — press scale ─────────────────────── */
+.btn-save:active,.add-notizia-btn:active,.add-pri-btn:active,
+.sub-todo-btn:active,.add-pratica-btn:active,.cal-nav:active { transform:scale(.94) !important }
+.btn-cancel:active,.notizie-sort-btn:active,.crono-filter-btn:active { transform:scale(.96) !important }
+.btn-save,.add-notizia-btn { position:relative; overflow:hidden }
 
-/* Ripple container for primary buttons */
-.btn-save, .add-notizia-btn { position:relative; overflow:hidden }
+/* Ripple */
 .imdesk-ripple {
   position:absolute; border-radius:50%; transform:scale(0);
-  animation:rippleAnim .55s linear; background:rgba(255,255,255,.22);
-  pointer-events:none; z-index:0
+  animation:rippleAnim .55s linear; background:rgba(255,255,255,.25);
+  pointer-events:none; z-index:0;
 }
 @keyframes rippleAnim { to { transform:scale(4); opacity:0 } }
 
-/* Checkbox / doc-check bounce on done */
-@keyframes checkBounce {
-  0%  { transform:scale(.6) }
-  55% { transform:scale(1.18) }
-  80% { transform:scale(.95) }
-  100%{ transform:scale(1) }
+/* ─── FAB — floating action button ─────────────── */
+#imdesk-fab {
+  position:fixed; right:18px; bottom:calc(70px + env(safe-area-inset-bottom));
+  z-index:400; display:flex; flex-direction:column-reverse; align-items:flex-end; gap:10px;
 }
-.todo-check.done, .doc-check.checked, .pri-check.done,
-.sub-todo-check.done, .pri-sub-check.done {
-  animation: checkBounce .32s cubic-bezier(.34,1.2,.64,1)
+#fab-main {
+  width:54px; height:54px; border-radius:50%; border:none; cursor:pointer;
+  background:linear-gradient(135deg,#F0904A,#E8721A,#C05A0A);
+  color:#fff; font-size:26px; font-weight:300; line-height:1;
+  box-shadow:0 6px 24px rgba(232,114,26,.5), 0 2px 8px rgba(0,0,0,.15);
+  transition:transform .25s cubic-bezier(.34,1.3,.64,1), box-shadow .25s ease;
+  display:flex; align-items:center; justify-content:center;
 }
-
-/* Card list item stagger */
-.pratica-card, .notizia-card, .crono-item { animation: cardIn .2s ease both }
-@keyframes cardIn { from { opacity:0; transform:translateY(4px) } to { opacity:1; transform:translateY(0) } }
-
-/* Pratica / incarico body expand */
-.pratica-body { animation: expandIn .22s cubic-bezier(.4,0,.2,1) both }
-@keyframes expandIn { from { opacity:0; transform:translateY(-5px) } to { opacity:1; transform:translateY(0) } }
-
-/* Day popup */
-.day-popup.visible { animation: popupIn .2s ease both }
-@keyframes popupIn { from { opacity:0; transform:scaleY(.95); transform-origin:top } to { opacity:1; transform:scaleY(1) } }
-
-/* Stat card clickable press */
-.stat-card.clickable { transition: transform .18s cubic-bezier(.34,1.2,.64,1), border-color var(--tr), background var(--tr), box-shadow var(--tr) }
-.stat-card.clickable:active { transform: scale(.96) }
-
-/* Calendar day press */
-.cal-day:active, .cal-week-day:active { transform: scale(.96); transition: transform .1s ease }
-
-/* Nav pill active indicator smooth */
-.nav-btn { transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .1s ease }
-.nav-btn:active { transform: scale(.94) }
-
-/* Quick actions footer */
-.add-quick { transition: color .15s ease, transform .1s ease }
-.add-quick:active { transform: scale(.92) }
-
-/* Call deadline box */
-.call-deadline-box { transition: transform .18s cubic-bezier(.34,1.2,.64,1), border-color var(--tr), background var(--tr) }
-.call-deadline-box:active { transform: scale(.95) }
-.call-oggi, .call-scaduto { animation: urgentPulse 2.2s ease-in-out infinite }
-@keyframes urgentPulse {
-  0%,100% { box-shadow: none }
-  50% { box-shadow: 0 0 0 5px rgba(232,114,26,.12) }
+#fab-main:hover { box-shadow:0 10px 32px rgba(232,114,26,.6); transform:scale(1.06) }
+#fab-main:active { transform:scale(.94) }
+#fab-main.open { transform:rotate(45deg) }
+#fab-items { display:flex; flex-direction:column-reverse; gap:8px; align-items:flex-end }
+.fab-item {
+  display:flex; align-items:center; gap:10px;
+  opacity:0; transform:translateY(10px) scale(.9);
+  transition:opacity .22s ease, transform .22s cubic-bezier(.34,1.3,.64,1);
+  pointer-events:none;
 }
-
-/* Form error shake */
-@keyframes formShake {
-  0%,100% { transform:translateX(0) }
-  20%,60%  { transform:translateX(-5px) }
-  40%,80%  { transform:translateX(5px) }
+.fab-item.show { opacity:1; transform:none; pointer-events:all }
+.fab-item-label {
+  background:rgba(13,27,46,.88); backdrop-filter:blur(8px);
+  color:#fff; font-size:12px; font-family:var(--font-sans); font-weight:500;
+  padding:6px 12px; border-radius:20px; white-space:nowrap;
+  box-shadow:0 2px 10px rgba(0,0,0,.2);
 }
-.shake { animation: formShake .38s ease }
+.fab-item-btn {
+  width:40px; height:40px; border-radius:50%; border:none; cursor:pointer;
+  background:var(--white); color:var(--text-1); font-size:16px;
+  box-shadow:0 3px 12px rgba(0,0,0,.15);
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .18s cubic-bezier(.34,1.3,.64,1);
+}
+.fab-item-btn:hover { transform:scale(1.1) }
+#fab-overlay { display:none; position:fixed; inset:0; z-index:390 }
+#fab-overlay.show { display:block }
 
-/* Smooth summary number update */
-.stat-num { transition: color .25s ease }
+/* ─── Call box pulse ────────────────────────────── */
+.call-oggi,.call-scaduto { animation:urgentPulse 2.2s ease-in-out infinite }
+@keyframes urgentPulse { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 0 5px rgba(232,114,26,.14)} }
+.call-deadline-box { transition:transform .18s cubic-bezier(.34,1.2,.64,1),border-color var(--tr),background var(--tr) }
+.call-deadline-box:active { transform:scale(.95) }
 
-/* Toast notification */
+/* ─── Calendar day ──────────────────────────────── */
+.cal-day:active,.cal-week-day:active { transform:scale(.95); transition:transform .1s ease }
+.day-popup.visible { animation:popupIn .22s ease both }
+@keyframes popupIn { from{opacity:0;transform:scaleY(.94);transform-origin:top} to{opacity:1;transform:none} }
+
+/* ─── Form shake ────────────────────────────────── */
+@keyframes formShake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
+.shake { animation:formShake .38s ease }
+
+/* ─── Toast ─────────────────────────────────────── */
 .imdesk-toast {
   position:fixed; bottom:88px; left:50%;
-  transform: translateX(-50%) translateY(14px);
-  opacity:0; padding:11px 22px; border-radius:12px;
+  transform:translateX(-50%) translateY(16px); opacity:0;
+  padding:12px 24px; border-radius:14px;
   font-size:13px; font-family:var(--font-sans); font-weight:500;
-  z-index:9999; box-shadow:0 8px 28px rgba(0,0,0,.22);
-  transition: opacity .28s ease, transform .32s cubic-bezier(.34,1.3,.64,1);
+  z-index:9999; box-shadow:0 10px 32px rgba(0,0,0,.25);
+  transition:opacity .28s ease, transform .34s cubic-bezier(.34,1.3,.64,1);
   white-space:nowrap; pointer-events:none; letter-spacing:.01em;
 }
 .imdesk-toast.show { transform:translateX(-50%) translateY(0); opacity:1 }
-.imdesk-toast.success { background:#266226; color:#fff }
-.imdesk-toast.info    { background:#1A4A9E; color:#fff }
-.imdesk-toast.warning { background:#C0392B; color:#fff }
+.imdesk-toast.success { background:linear-gradient(135deg,#2E7A2E,#266226); color:#fff }
+.imdesk-toast.info    { background:linear-gradient(135deg,#1E55B5,#1A4A9E); color:#fff }
+.imdesk-toast.warning { background:linear-gradient(135deg,#D44040,#C0392B); color:#fff }
 
-/* Add item input row smooth expand */
-.todo-input, .add-pri-input {
-  transition: border-color .15s ease, box-shadow .15s ease;
-}
+/* ─── Doc progress bar ──────────────────────────── */
+.doc-prog-bar { height:3px; background:var(--bg-2); border-radius:2px; margin-bottom:12px; overflow:hidden }
+.doc-prog-fill { height:100%; background:linear-gradient(90deg,var(--gold-mid),var(--gold)); border-radius:2px; transition:width .5s cubic-bezier(.4,0,.2,1) }
 
-/* Hero title counter animation */
-@keyframes numPop {
-  0%   { transform:scale(1) }
-  50%  { transform:scale(1.15) }
-  100% { transform:scale(1) }
-}
-.stat-num.updated { animation: numPop .3s cubic-bezier(.34,1.2,.64,1) }
+/* ─── Stat num pop ──────────────────────────────── */
+@keyframes numPop { 0%{transform:scale(1)} 50%{transform:scale(1.18)} 100%{transform:scale(1)} }
+.stat-num.updated { animation:numPop .32s cubic-bezier(.34,1.3,.64,1) }
 
-/* Smooth scroll containers */
-.ptabs, .nav-pills { scroll-behavior: smooth }
+/* ─── Pratica body expand ───────────────────────── */
+.pratica-body { animation:expandIn .24s cubic-bezier(.4,0,.2,1) both }
+@keyframes expandIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
 
-/* Progress bar for doc completion */
-.doc-prog-bar { height:2px; background:var(--bg-2); border-radius:2px; margin-top:4px; overflow:hidden }
-.doc-prog-fill { height:100%; background:linear-gradient(90deg, var(--gold-mid), var(--gold)); border-radius:2px; transition:width .5s cubic-bezier(.4,0,.2,1) }
+/* ─── Smooth scroll ─────────────────────────────── */
+.ptabs,.nav-pills { scroll-behavior:smooth }
+.pratica-expand,.pri-expand { display:inline-block; transition:transform .25s cubic-bezier(.4,0,.2,1) }
 
-/* Bottom bar add buttons */
-.add-quick { position:relative; overflow:hidden }
-
-/* Pratica header expand arrow — smoother */
-.pratica-expand, .pri-expand {
-  display:inline-block;
-  transition: transform .25s cubic-bezier(.4,0,.2,1)
-}
+/* ─── Add quick ─────────────────────────────────── */
+.add-quick { transition:color .15s ease,transform .1s ease; position:relative; overflow:hidden }
+.add-quick:active { transform:scale(.91) }
 </style>
 </head>
 <body>
@@ -447,6 +598,34 @@ button, a, [onclick] { touch-action: manipulation }
     <button onclick="showCronologia()" style="font-size:11px;color:var(--text-5);border:none;background:transparent;cursor:pointer;font-family:var(--font-sans);letter-spacing:.04em;transition:color var(--tr)" onmouseover="this.style.color='#E8721A'" onmouseout="this.style.color='var(--text-5)'">📋 Cronologia</button>
     <div class="version">ImDesk v1.0</div>
   </footer>
+</div>
+
+<!-- FAB — Floating Action Button -->
+<div id="fab-overlay" onclick="closeFab()"></div>
+<div id="imdesk-fab">
+  <button id="fab-main" onclick="toggleFab()" title="Azioni rapide">＋</button>
+  <div id="fab-items">
+    <div class="fab-item" style="transition-delay:.04s">
+      <span class="fab-item-label">Nuova pratica</span>
+      <button class="fab-item-btn" onclick="closeFab();showPage('pratiche',document.querySelectorAll('.nav-btn')[4]);openAddPratica()">🏠</button>
+    </div>
+    <div class="fab-item" style="transition-delay:.08s">
+      <span class="fab-item-label">Nuovo incarico</span>
+      <button class="fab-item-btn" onclick="closeFab();showPage('incarichi',document.querySelectorAll('.nav-btn')[3]);openAddIncarico()">📝</button>
+    </div>
+    <div class="fab-item" style="transition-delay:.12s">
+      <span class="fab-item-label">Nuova valutazione</span>
+      <button class="fab-item-btn" onclick="closeFab();showPage('valutazioni',document.querySelectorAll('.nav-btn')[2]);openAddValutazione()">📊</button>
+    </div>
+    <div class="fab-item" style="transition-delay:.16s">
+      <span class="fab-item-label">Nuovo contatto</span>
+      <button class="fab-item-btn" onclick="closeFab();showPage('notizie',document.querySelectorAll('.nav-btn')[1]);openAddNotizia()">👤</button>
+    </div>
+    <div class="fab-item" style="transition-delay:.2s">
+      <span class="fab-item-label">To Do</span>
+      <button class="fab-item-btn" onclick="closeFab();focusTodo()">✅</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL -->
@@ -2582,9 +2761,46 @@ document.addEventListener('DOMContentLoaded',safeInit);
 safeInit();
 }
 
-/* ═══════════════════════════════════════
-   ENHANCED UI INTERACTIONS — Im·Desk
-   ═══════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   WOW UI INTERACTIONS — Im·Desk
+   ═══════════════════════════════════════════════════ */
+
+// ── FAB ───────────────────────────────────────────────────────────────────
+let _fabOpen = false;
+function toggleFab() {
+  _fabOpen = !_fabOpen;
+  document.getElementById('fab-main').classList.toggle('open', _fabOpen);
+  document.getElementById('fab-overlay').classList.toggle('show', _fabOpen);
+  document.querySelectorAll('.fab-item').forEach((el, i) => {
+    setTimeout(() => el.classList.toggle('show', _fabOpen), _fabOpen ? i * 40 : 0);
+  });
+}
+function closeFab() {
+  if (!_fabOpen) return;
+  _fabOpen = false;
+  document.getElementById('fab-main').classList.remove('open');
+  document.getElementById('fab-overlay').classList.remove('show');
+  document.querySelectorAll('.fab-item').forEach(el => el.classList.remove('show'));
+}
+
+// ── Animated count-up for stat numbers ────────────────────────────────────
+function countUp(el, target, duration=700) {
+  if (!el) return;
+  const isEur = typeof target === 'string' && target.startsWith('€');
+  if (isEur || target === '—') { el.textContent = target; return; }
+  const num = parseInt(target, 10);
+  if (isNaN(num) || num === 0) { el.textContent = target; return; }
+  const start = performance.now();
+  const from = 0;
+  function step(now) {
+    const p = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(from + (num - from) * ease);
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = target;
+  }
+  requestAnimationFrame(step);
+}
 
 // ── Toast notification system ──────────────────────────────────────────────
 function showToast(msg, type='success') {
@@ -2629,15 +2845,35 @@ function animateStatNum(el, newVal) {
   setTimeout(() => el.classList.remove('updated'), 350);
 }
 
-// Patch updateStats to use animated counter
+// Patch updateStats to use animated pop on stat numbers
 const _origUpdateStats = updateStats;
 updateStats = function() {
-  _origUpdateStats();
-  // The numbers were already written by _origUpdateStats — just trigger animation
+  const before = {};
   ['stat-todo','stat-pratiche','stat-mediazioni'].forEach(id => {
     const el = document.getElementById(id);
-    if (el) { el.classList.remove('updated'); void el.offsetWidth; el.classList.add('updated'); }
+    if (el) before[id] = el.textContent;
   });
+  _origUpdateStats();
+  ['stat-todo','stat-pratiche','stat-mediazioni'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.textContent !== before[id]) {
+      el.classList.remove('updated');
+      void el.offsetWidth;
+      el.classList.add('updated');
+    }
+  });
+};
+
+// ── Count-up on first load ────────────────────────────────────────────────
+const _origEnterApp = enterApp;
+enterApp = function(nome) {
+  _origEnterApp(nome);
+  setTimeout(() => {
+    const todo = document.getElementById('stat-todo');
+    const prat = document.getElementById('stat-pratiche');
+    if (todo) countUp(todo, todo.textContent, 600);
+    if (prat) countUp(prat, prat.textContent, 800);
+  }, 300);
 };
 
 // ── Smooth page transitions ────────────────────────────────────────────────

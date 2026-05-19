@@ -91,20 +91,81 @@ button,a,[onclick] { touch-action:manipulation }
   to   { opacity:1; transform:translateY(0) }
 }
 
-/* ─── Topbar — blur glass strip ────────────────── */
+/* ─── Topbar — slim fluid bar ───────────────────── */
 .topbar {
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  background: rgba(13,27,46,.92) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 24px !important;
+  padding-top: env(safe-area-inset-top) !important;
+  min-height: calc(52px + env(safe-area-inset-top)) !important;
+  background: rgba(13,27,46,.96) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  gap: 0 !important;
+  flex-wrap: nowrap !important;
 }
 
-/* Nav pill — gradient active */
-.nav-btn.active {
-  background: linear-gradient(135deg, #F0904A 0%, #E8721A 60%, #C05A0A 100%) !important;
-  box-shadow: 0 2px 14px rgba(232,114,26,.45), 0 0 0 1px rgba(255,255,255,.08) inset !important;
+/* Logo inline */
+.topbar-logo {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: #fff;
+  letter-spacing: -.01em;
+  flex-shrink: 0;
+  user-select: none;
+  margin-right: 28px;
 }
-.nav-btn { transition: background .22s ease, color .22s ease, box-shadow .22s ease, transform .1s ease }
-.nav-btn:active { transform:scale(.93) }
+.topbar-logo em { font-style:italic; color:var(--gold) }
+
+/* Nav — flat text links, no pill container */
+.nav-pills {
+  display: flex !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  flex: 1;
+  height: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.nav-pills::-webkit-scrollbar { display:none }
+
+.nav-btn {
+  position: relative;
+  padding: 0 16px !important;
+  border-radius: 0 !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: rgba(255,255,255,.42) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  height: 100%;
+  border-bottom: 2px solid transparent !important;
+  transition: color .2s ease, border-color .2s ease !important;
+  white-space: nowrap;
+  letter-spacing: .01em;
+}
+.nav-btn:hover { color: rgba(255,255,255,.78) !important }
+.nav-btn.active {
+  color: #fff !important;
+  font-weight: 500 !important;
+  border-bottom-color: var(--gold) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.nav-btn:active { transform: none !important; opacity: .7 }
+
+@media(max-width:768px) {
+  .topbar { padding: 0 14px !important; gap:0 !important }
+  .topbar-logo { font-size:16px; margin-right:16px }
+  .nav-btn { padding: 0 11px !important; font-size:12px !important }
+  .topbar-date { display:none }
+}
 
 /* ─── Page entry ────────────────────────────────── */
 .page.active { animation:pageIn .26s cubic-bezier(.4,0,.2,1) both }
@@ -416,7 +477,8 @@ button,a,[onclick] { touch-action:manipulation }
 
 <div class="app" id="main-app" style="display:none">
   <header class="topbar">
-    <nav class="nav-pills" style="flex:1;justify-content:center">
+    <div class="topbar-logo">Im<em>·</em>Desk</div>
+    <nav class="nav-pills">
       <button class="nav-btn active" onclick="showPage('agenda',this)">Agenda</button>
       <button class="nav-btn" onclick="showPage('notizie',this)">Notizie</button>
       <button class="nav-btn" onclick="showPage('valutazioni',this)">Valutazioni</button>

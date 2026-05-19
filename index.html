@@ -96,13 +96,13 @@ button,a,[onclick] { touch-action:manipulation }
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  padding: 0 24px !important;
+  padding: 0 28px !important;
   padding-top: env(safe-area-inset-top) !important;
-  min-height: calc(52px + env(safe-area-inset-top)) !important;
+  min-height: calc(64px + env(safe-area-inset-top)) !important;
   background: rgba(13,27,46,.96) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
-  border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  border-bottom: 1px solid rgba(255,255,255,.07) !important;
   gap: 0 !important;
   flex-wrap: nowrap !important;
 }
@@ -110,16 +110,17 @@ button,a,[onclick] { touch-action:manipulation }
 /* Logo inline */
 .topbar-logo {
   font-family: var(--font-serif);
-  font-size: 18px;
+  font-size: 22px;
   color: #fff;
   letter-spacing: -.01em;
   flex-shrink: 0;
   user-select: none;
-  margin-right: 28px;
+  margin-right: 36px;
+  line-height: 1;
 }
 .topbar-logo em { font-style:italic; color:var(--gold) }
 
-/* Nav — flat text links, no pill container */
+/* Nav — flat text links */
 .nav-pills {
   display: flex !important;
   align-items: stretch !important;
@@ -137,9 +138,9 @@ button,a,[onclick] { touch-action:manipulation }
 
 .nav-btn {
   position: relative;
-  padding: 0 16px !important;
+  padding: 0 18px !important;
   border-radius: 0 !important;
-  font-size: 13px !important;
+  font-size: 14px !important;
   font-weight: 400 !important;
   color: rgba(255,255,255,.42) !important;
   background: transparent !important;
@@ -161,9 +162,9 @@ button,a,[onclick] { touch-action:manipulation }
 .nav-btn:active { transform: none !important; opacity: .7 }
 
 @media(max-width:768px) {
-  .topbar { padding: 0 14px !important; gap:0 !important }
-  .topbar-logo { font-size:16px; margin-right:16px }
-  .nav-btn { padding: 0 11px !important; font-size:12px !important }
+  .topbar { padding: 0 16px !important; min-height: calc(58px + env(safe-area-inset-top)) !important }
+  .topbar-logo { font-size:19px; margin-right:20px }
+  .nav-btn { padding: 0 13px !important; font-size:13px !important }
   .topbar-date { display:none }
 }
 

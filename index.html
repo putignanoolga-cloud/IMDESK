@@ -3081,6 +3081,7 @@ const _origRenderNotizie = renderNotizie;
 renderNotizie = function() {
   _origRenderNotizie();
   requestAnimationFrame(() => staggerCards('#notizie-list'));
+  renderNotifBanner();
 };
 const _origRenderValutazioni = renderValutazioni;
 renderValutazioni = function() {
@@ -3221,13 +3222,6 @@ function startNotifChecker() {
     });
   }, 60000);
 }
-
-// Patch renderNotizie to always show the status bar
-const _origRenderNotizie = renderNotizie;
-renderNotizie = function() {
-  _origRenderNotizie();
-  renderNotifBanner();
-};
 
 // Patch openSetCallDeadline to include notification hint and request permission in-context
 const _origOpenSetCallDeadline = openSetCallDeadline;

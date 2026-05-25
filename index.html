@@ -1808,11 +1808,15 @@ return{label:fmtDate(d)+ora,cls:'call-ok'};
 
 function openSetCallDeadline(id){
 const n=state.notizie.find(x=>x.id===id);if(!n)return;
+const notifHint=('Notification' in window && Notification.permission!=='granted')
+?`<div style="margin-top:10px;padding:9px 12px;background:#FEF9F0;border:1px solid #E8C060;border-radius:8px;font-size:12px;color:#7A5900;display:flex;align-items:center;gap:10px"><span>🔕 Attiva le notifiche per ricevere questo avviso</span><button onclick="enableNotifs()" style="flex-shrink:0;border:none;border-radius:5px;background:#E8721A;color:white;font-size:11px;padding:4px 10px;cursor:pointer;font-family:var(--font-sans)">Attiva</button></div>`
+:'';
 openModal(`<h3>📞 Promemoria chiamata</h3>
 <div style="font-size:14px;color:var(--text-2);margin-bottom:16px;font-family:var(--font-serif)">${n.nome}</div>
 <div class="field"><label>Data per richiamare</label><input id="cd-date" type="date" value="${n.dataChiamata||isoDate(nowDate())}"></div>
     <div class="field"><label>Ora</label><input id="cd-time" type="time" value="${n.oraChiamata||'09:00'}"></div>
 <div style="font-size:12px;color:var(--text-4);margin-top:-8px;margin-bottom:12px">Riceverai una notifica del browser alla data impostata</div>
+${notifHint}
 <div class="modal-actions">
 <button class="btn-cancel" onclick="closeModal()">Annulla</button>
 ${n.dataChiamata?`<button style="padding:8px 14px;border:1px solid var(--terra);border-radius:var(--r-sm);background:transparent;color:var(--terra);font-size:12px;cursor:pointer;font-family:var(--font-sans)" onclick="clearCallDeadline(${id})">Rimuovi</button>`:''}
@@ -3241,24 +3245,6 @@ function startNotifChecker() {
     if (document.visibilityState === 'visible') checkDueNotifs();
   });
 }
-
-
-// Patch openSetCallDeadline to include notification hint and request permission in-context
-const _origOpenSetCallDeadline = openSetCallDeadline;
-openSetCallDeadline = function(id) {
-  _origOpenSetCallDeadline(id);
-  // After modal opens, inject notification hint if permission not granted
-  if ('Notification' in window && Notification.permission !== 'granted') {
-    setTimeout(() => {
-      const modal = document.querySelector('.modal-box, .modal-content, #modal-body');
-      if (!modal) return;
-      const hint = document.createElement('div');
-      hint.style.cssText = 'margin-top:10px;padding:9px 12px;background:#FEF9F0;border:1px solid #E8C060;border-radius:8px;font-size:12px;color:#7A5900;display:flex;align-items:center;gap:10px';
-      hint.innerHTML = '<span>🔕 Attiva le notifiche per ricevere questo avviso</span><button onclick="enableNotifs()" style="flex-shrink:0;border:none;border-radius:5px;background:#E8721A;color:white;font-size:11px;padding:4px 10px;cursor:pointer;font-family:var(--font-sans)">Attiva</button>';
-      modal.appendChild(hint);
-    }, 100);
-  }
-};
 
 // Patch checkNotificationsOnLoad to also start the interval checker and register SW
 const _origCheckNotificationsOnLoad = checkNotificationsOnLoad;

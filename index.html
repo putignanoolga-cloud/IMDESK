@@ -2693,12 +2693,13 @@ supa.from('pratiche').select('*').eq('user_id',uid).order('id'),
 supa.from('cronologia').select('*').eq('user_id',uid).order('ts',{ascending:false}).limit(200),
 ]);
 
-state.todos=(t.data||[]).map(r=>({id:r.id,title:r.title,deadline:r.deadline||'',done:r.done||false,open:r.open||false,subtodos:r.subtodos||[],time:r.time||'',_callNotizia:r.call_notizia,_rogatoPratica:r.rogato_pratica}));
+state.todos=(t.data||[]).map(r=>{const sep=r.title.indexOf('⁠');let title=r.title,ex={};if(sep>-1){title=r.title.slice(0,sep);try{ex=JSON.parse(r.title.slice(sep+1));}catch(e){}}return{id:r.id,title,deadline:r.deadline||'',done:r.done||false,open:ex.o||r.open||false,subtodos:ex.s||r.subtodos||[],time:ex.tm||r.time||'',_callNotizia:ex.cn!==undefined?ex.cn:r.call_notizia,_rogatoPratica:ex.rp!==undefined?ex.rp:r.rogato_pratica};});
 
 state.priorities={oggi:[],settimana:[],mese:[]};
 (pr.data||[]).forEach(r=>{
-const g=r.gruppo;
-if(state.priorities[g]) state.priorities[g].push({id:r.id,title:r.title,deadline:r.deadline||'',done:r.done||false,open:r.open||false,subtasks:r.subtasks||[]});
+const g=r.gruppo;if(!state.priorities[g])return;
+const sep=r.title.indexOf('⁠');let title=r.title,ex={};if(sep>-1){title=r.title.slice(0,sep);try{ex=JSON.parse(r.title.slice(sep+1));}catch(e){}}
+state.priorities[g].push({id:r.id,title,deadline:r.deadline||'',done:r.done||false,open:ex.o||r.open||false,subtasks:ex.s||r.subtasks||[]});
 });
 state.notizie=(n.data||[]).map(r=>({id:r.id,nome:r.nome,tel:r.tel||'',via:r.via||'',note:r.note||'',isAcquisizione:r.is_acquisizione||false,dataChiamata:r.data_chiamata||'',oraChiamata:r.ora_chiamata||'',createdAt:r.created_at}));
 state.valutazioni=(v.data||[]).map(r=>({id:r.id,notiziaId:r.notizia_id,nome:r.nome,via:r.via||'',prezzo:r.prezzo||0,dataStima:r.data_stima||'',dataConsegna:r.data_consegna||'',note:r.note||'',isIncarico:r.is_incarico||false,createdAt:r.created_at}));
@@ -2751,16 +2752,18 @@ const uid=currentUser.id;
 // Only save to Supabase if uid is a real UUID (not a local fallback)
 if(!uid||uid.startsWith('local_')||!uid.includes('-')||currentUser.isLocal)return;
 try{
-// TODOS
-const todoRows=state.todos.map(t=>({id:t.id,user_id:uid,title:t.title,deadline:t.deadline||null,done:t.done||false,open:t.open||false,subtodos:t.subtodos||[],call_notizia:t._callNotizia||null,rogato_pratica:t._rogatoPratica||null,time:t.time||null}));
+// TODOS — embed extra fields in title using invisible separator ⁠
+// (subtodos, time, open, call_notizia, rogato_pratica may not exist as columns)
+const SEP='⁠';
+const todoRows=state.todos.map(t=>{const extra=JSON.stringify({o:t.open||false,s:t.subtodos||[],tm:t.time||'',cn:t._callNotizia||null,rp:t._rogatoPratica||null});return{id:t.id,user_id:uid,title:t.title+SEP+extra,deadline:t.deadline||null,done:t.done||false};});
 if(todoRows.length){const {error:e1}=await supa.from('todos').upsert(todoRows,{onConflict:'id'});if(e1)console.error('todos:',e1.message);}
 const todoIds=state.todos.map(t=>t.id);
 if(todoIds.length){await supa.from('todos').delete().eq('user_id',uid).not('id','in','('+todoIds.join(',')+')');}
 else{await supa.from('todos').delete().eq('user_id',uid);}
 
-// PRIORITIES
+// PRIORITIES — same SEP trick for extra fields
 const priRows=[];
-['oggi','settimana','mese'].forEach(g=>{(state.priorities[g]||[]).forEach(p=>priRows.push({id:p.id,user_id:uid,gruppo:g,title:p.title,deadline:p.deadline||null,done:p.done||false,open:p.open||false,subtasks:p.subtasks||[]}));});
+['oggi','settimana','mese'].forEach(g=>{(state.priorities[g]||[]).forEach(p=>{const extra=JSON.stringify({o:p.open||false,s:p.subtasks||[]});priRows.push({id:p.id,user_id:uid,gruppo:g,title:p.title+SEP+extra,deadline:p.deadline||null,done:p.done||false});});});
 if(priRows.length){const {error:e2}=await supa.from('priorities').upsert(priRows,{onConflict:'id'});if(e2)console.error('priorities:',e2.message);}
 
 // NOTIZIE

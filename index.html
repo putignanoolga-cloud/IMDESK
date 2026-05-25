@@ -1909,11 +1909,19 @@ const tp=timeStr.split(':');
 target.setHours(+tp[0],+tp[1],0,0);
 const fireAt=target.getTime();
 if(fireAt<=Date.now())return;
+const remaining=fireAt-Date.now();
 const id='imdesk-'+title+'-'+fireAt;
 navigator.serviceWorker.ready.then(reg=>{
-if(reg.active){
-reg.active.postMessage({type:'SCHEDULE',id,title:'Im·Desk — '+title,body:body||title,fireAt});
-}
+// Tell SW to persist + fire via showNotification (survives tab close on Android)
+if(reg.active)reg.active.postMessage({type:'SCHEDULE',id,title:'Im·Desk — '+title,body:body||title,fireAt});
+// Also set a local setTimeout using reg.showNotification() as backup while tab is open
+// (catches cases where SW is killed before the timer fires)
+setTimeout(async()=>{
+const key='nf-local-'+id;
+if(sessionStorage.getItem(key))return;
+sessionStorage.setItem(key,'1');
+try{await reg.showNotification('Im·Desk — '+title,{body:body||title,icon:'/icon-192.png',badge:'/icon-192.png',tag:id,renotify:true,requireInteraction:false,vibrate:[200,100,200]});}catch(e){}
+},remaining);
 }).catch(()=>{});
 }
 
@@ -3175,56 +3183,65 @@ function enableNotifs() {
   setTimeout(renderNotifBanner, 800);
 }
 
-// Send a test notification in 3 seconds
+// Send a test notification in 3 seconds via SW showNotification (works on mobile)
 function sendTestNotif() {
   if (Notification.permission !== 'granted') { enableNotifs(); return; }
-  const fireAt = Date.now() + 3000;
-  const id = 'test-' + fireAt;
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready.then(reg => {
-      if (reg.active) {
-        reg.active.postMessage({ type:'SCHEDULE', id, title:'Im·Desk — Test notifica', body:'✅ Le notifiche funzionano!', fireAt });
-      } else {
-        setTimeout(() => new Notification('Im·Desk — Test notifica', { body:'✅ Le notifiche funzionano!', icon:'/icon-192.png' }), 3000);
-      }
-    }).catch(() => {
-      setTimeout(() => new Notification('Im·Desk — Test notifica', { body:'✅ Le notifiche funzionano!', icon:'/icon-192.png' }), 3000);
-    });
-  } else {
-    setTimeout(() => new Notification('Im·Desk — Test notifica', { body:'✅ Le notifiche funzionano!', icon:'/icon-192.png' }), 3000);
-  }
+  navigator.serviceWorker.ready.then(reg => {
+    setTimeout(() => {
+      reg.showNotification('Im·Desk — Test notifica', {
+        body: '✅ Le notifiche funzionano!',
+        icon: '/icon-192.png', badge: '/icon-192.png',
+        vibrate: [200, 100, 200], requireInteraction: false
+      });
+    }, 3000);
+  }).catch(() => {});
   if (typeof showToast === 'function') showToast('Test inviato — arriverà tra 3 secondi 🔔', 'success');
 }
 
-// Interval checker: fires notifications from main thread when tab is open
-// This is the most reliable path — SW can be killed, but an open tab never misses
+// Fire a notification via SW showNotification (the only reliable path on mobile Chrome)
+async function swNotify(key, title, body) {
+  if (sessionStorage.getItem(key)) return;
+  sessionStorage.setItem(key, '1');
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    await reg.showNotification('Im·Desk — ' + title, {
+      body, icon: '/icon-192.png', badge: '/icon-192.png',
+      tag: key, renotify: true, requireInteraction: false, vibrate: [200,100,200]
+    });
+  } catch(e) {}
+}
+
+// Check and fire any due notifications right now
+async function checkDueNotifs() {
+  if (Notification.permission !== 'granted') return;
+  if (!('serviceWorker' in navigator)) return;
+  const now = Date.now();
+  const GRACE = 120000; // 2 min grace window
+  const today = isoDate(nowDate());
+  for (const n of state.notizie.filter(n => n.dataChiamata && n.oraChiamata)) {
+    const t = new Date(n.dataChiamata); const [h,m] = n.oraChiamata.split(':'); t.setHours(+h,+m,0,0);
+    const ts = t.getTime();
+    if (ts <= now && ts > now - GRACE) await swNotify('nf-'+n.id+'-'+ts, 'Chiama '+n.nome, '📞 '+(n.tel||n.nome));
+  }
+  for (const t of state.todos.filter(t => !t.done && t.time)) {
+    const d = t.deadline||today; const target = new Date(d); const [h2,m2] = t.time.split(':'); target.setHours(+h2,+m2,0,0);
+    const ts = target.getTime();
+    if (ts <= now && ts > now - GRACE) await swNotify('nf-todo-'+t.id+'-'+ts, t.title, '📋 Attività da gestire');
+  }
+}
+
+// Interval checker: runs every 60s while tab is open, also on tab focus
 function startNotifChecker() {
   if (window._notifCheckerRunning) return;
   window._notifCheckerRunning = true;
-  setInterval(() => {
-    if (Notification.permission !== 'granted') return;
-    const now = Date.now();
-    const GRACE = 90000; // fire up to 90s late (covers missed 60s intervals)
-    const today = isoDate(nowDate());
-    function maybeNotify(key, title, body) {
-      if (sessionStorage.getItem(key)) return;
-      sessionStorage.setItem(key, '1');
-      try { new Notification('Im·Desk — ' + title, { body, icon:'/icon-192.png', tag:key, requireInteraction:false }); } catch(e) {}
-    }
-    // Call reminders
-    state.notizie.filter(n => n.dataChiamata && n.oraChiamata).forEach(n => {
-      const t = new Date(n.dataChiamata); const [h,m] = n.oraChiamata.split(':'); t.setHours(+h,+m,0,0);
-      const ts = t.getTime();
-      if (ts <= now && ts > now - GRACE) maybeNotify('nf-'+n.id+'-'+ts, 'Chiama '+n.nome, '📞 '+(n.tel||n.nome));
-    });
-    // Todos with time
-    state.todos.filter(t => !t.done && t.time).forEach(t => {
-      const d = t.deadline||today; const target = new Date(d); const [h,m] = t.time.split(':'); target.setHours(+h,+m,0,0);
-      const ts = target.getTime();
-      if (ts <= now && ts > now - GRACE) maybeNotify('nf-todo-'+t.id+'-'+ts, t.title, '📋 Attività da gestire');
-    });
-  }, 60000);
+  checkDueNotifs(); // fire immediately on start
+  setInterval(checkDueNotifs, 60000);
+  // Also fire when user comes back to the tab (e.g. switching from another app)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') checkDueNotifs();
+  });
 }
+
 
 // Patch openSetCallDeadline to include notification hint and request permission in-context
 const _origOpenSetCallDeadline = openSetCallDeadline;

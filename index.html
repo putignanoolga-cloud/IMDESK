@@ -2358,11 +2358,20 @@ inc.payments=(inc.payments||[]).filter(x=>x.id!==payId);save();renderIncarichi()
 function toggleIncDocAcq(incId,docId){
 const inc=state.incarichi.find(x=>x.id===incId);if(!inc)return;
 const d=(inc.docsAcquirente||[]).find(x=>x.id===docId);
-if(d){d.checked=!d.checked;if(d.checked)logEvent('documento','Doc acquirente spuntato',d.label+' — '+inc.acquirenteNome);save();renderIncarichi();}
+if(d){d.checked=!d.checked;if(d.checked)logEvent('documento','Doc acquirente spuntato',d.label+' — '+inc.acquirenteNome);
+// Sync to linked pratica
+const prat=state.pratiche.find(p=>p._incaricoId===incId);
+if(prat&&prat.docsAcq){const pd=prat.docsAcq.find(x=>x.label===d.label);if(pd)pd.checked=d.checked;}
+save();renderIncarichi();}
 }
 function deleteIncDocAcq(incId,docId){
 const inc=state.incarichi.find(x=>x.id===incId);if(!inc)return;
-inc.docsAcquirente=(inc.docsAcquirente||[]).filter(x=>x.id!==docId);save();renderIncarichi();
+const d=(inc.docsAcquirente||[]).find(x=>x.id===docId);
+inc.docsAcquirente=(inc.docsAcquirente||[]).filter(x=>x.id!==docId);
+// Sync to linked pratica
+const prat=state.pratiche.find(p=>p._incaricoId===incId);
+if(prat&&prat.docsAcq&&d){prat.docsAcq=prat.docsAcq.filter(x=>x.label!==d.label);}
+save();renderIncarichi();
 }
 function openAddIncDocAcq(incId){
 openModal('<h3>Aggiungi documento acquirente</h3><div class="field"><label>Nome documento</label><input id="inc-doc-acq" placeholder="Es. Proposta firmata"></div><div class="modal-actions"><button class="btn-cancel" onclick="closeModal()">Annulla</button><button class="btn-save" onclick="saveIncDocAcq('+incId+')">Aggiungi</button></div>');
@@ -2371,7 +2380,11 @@ function saveIncDocAcq(incId){
 const label=(document.getElementById('inc-doc-acq').value||'').trim();if(!label)return;
 const inc=state.incarichi.find(x=>x.id===incId);if(!inc)return;
 if(!inc.docsAcquirente)inc.docsAcquirente=[];
-inc.docsAcquirente.push({id:Date.now(),label,checked:false});
+const newDoc={id:Date.now(),label,checked:false};
+inc.docsAcquirente.push(newDoc);
+// Sync to linked pratica
+const prat=state.pratiche.find(p=>p._incaricoId===incId);
+if(prat&&prat.docsAcq)prat.docsAcq.push({...newDoc});
 save();closeModal();renderIncarichi();
 }
 function associaAcquirenteDaSel(incId){

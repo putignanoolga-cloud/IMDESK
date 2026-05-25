@@ -2714,6 +2714,7 @@ if(silent){
 renderAll();updateDate();
 const bar=document.getElementById('user-bar');
 if(bar){const sp=bar.querySelector('span');if(sp)sp.textContent=nome;}
+checkNotificationsOnLoad();
 } else {
 enterApp(nome);
 }
@@ -3122,6 +3123,138 @@ refreshData = async function() {
   await _origRefreshData();
   if (btn) btn.style.animation = '';
 };
+
+// ── Notification system ──────────────────────────────────────────────────────
+
+// Register SW immediately so it can fire pending notifications on wakeup
+function ensureSWRegistered() {
+  if (!('serviceWorker' in navigator)) return;
+  navigator.serviceWorker.register('/sw.js').then(reg => {
+    window._swReg = reg;
+  }).catch(() => {});
+}
+
+// Show notification status bar in Notizie page
+function renderNotifBanner() {
+  let bar = document.getElementById('notif-status-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'notif-status-bar';
+    bar.style.margin = '8px 12px 4px';
+    const list = document.getElementById('notizie-list');
+    if (list && list.parentNode) list.parentNode.insertBefore(bar, list);
+    else return;
+  }
+  if (!('Notification' in window)) { bar.style.display='none'; return; }
+  const perm = Notification.permission;
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+  const base = 'padding:9px 14px;border-radius:10px;font-size:12.5px;display:flex;align-items:center;justify-content:space-between;gap:8px';
+  const btn = (label, fn, bg, col) => `<button onclick="${fn}" style="flex-shrink:0;border:none;border-radius:6px;background:${bg};color:${col};font-size:12px;padding:5px 12px;cursor:pointer;font-family:var(--font-sans);font-weight:500">${label}</button>`;
+  if (isIOS && !isStandalone) {
+    bar.style.cssText = base + ';background:#FEF0E6;border:1px solid #E8721A;color:#8B3A0A';
+    bar.innerHTML = '<span>📱 <b>iPhone:</b> per le notifiche aggiungi l\'app alla Home — tocca <b>Condividi → Aggiungi a Home</b></span>';
+  } else if (perm === 'granted') {
+    bar.style.cssText = base + ';background:#EBF5EB;border:1px solid #6AC46A;color:#1E5E1E';
+    bar.innerHTML = '<span>🔔 Notifiche attive</span>' + btn('Invia test', 'sendTestNotif()', '#4CAF50', '#fff');
+  } else if (perm === 'denied') {
+    bar.style.cssText = base + ';background:#FEECEC;border:1px solid #E57373;color:#B71C1C';
+    bar.innerHTML = '<span>🔕 Notifiche bloccate — vai nelle impostazioni del browser → 🔒 → Notifiche → <b>Consenti</b></span>';
+  } else {
+    bar.style.cssText = base + ';background:#FEF9F0;border:1px solid #E8C060;color:#7A5900';
+    bar.innerHTML = '<span>🔕 Notifiche disattive — attivale per ricevere i promemoria chiamate anche con l\'app chiusa</span>' + btn('Attiva ora', 'enableNotifs()', '#E8721A', '#fff');
+  }
+}
+
+function enableNotifs() {
+  scheduleAllNotifs();
+  setTimeout(renderNotifBanner, 800);
+}
+
+// Send a test notification in 3 seconds
+function sendTestNotif() {
+  if (Notification.permission !== 'granted') { enableNotifs(); return; }
+  const fireAt = Date.now() + 3000;
+  const id = 'test-' + fireAt;
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(reg => {
+      if (reg.active) {
+        reg.active.postMessage({ type:'SCHEDULE', id, title:'Im·Desk — Test notifica', body:'✅ Le notifiche funzionano!', fireAt });
+      } else {
+        setTimeout(() => new Notification('Im·Desk — Test notifica', { body:'✅ Le notifiche funzionano!', icon:'/icon-192.png' }), 3000);
+      }
+    }).catch(() => {
+      setTimeout(() => new Notification('Im·Desk — Test notifica', { body:'✅ Le notifiche funzionano!', icon:'/icon-192.png' }), 3000);
+    });
+  } else {
+    setTimeout(() => new Notification('Im·Desk — Test notifica', { body:'✅ Le notifiche funzionano!', icon:'/icon-192.png' }), 3000);
+  }
+  if (typeof showToast === 'function') showToast('Test inviato — arriverà tra 3 secondi 🔔', 'success');
+}
+
+// Interval checker: fires notifications from main thread when tab is open
+// This is the most reliable path — SW can be killed, but an open tab never misses
+function startNotifChecker() {
+  if (window._notifCheckerRunning) return;
+  window._notifCheckerRunning = true;
+  setInterval(() => {
+    if (Notification.permission !== 'granted') return;
+    const now = Date.now();
+    const GRACE = 90000; // fire up to 90s late (covers missed 60s intervals)
+    const today = isoDate(nowDate());
+    function maybeNotify(key, title, body) {
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+      try { new Notification('Im·Desk — ' + title, { body, icon:'/icon-192.png', tag:key, requireInteraction:false }); } catch(e) {}
+    }
+    // Call reminders
+    state.notizie.filter(n => n.dataChiamata && n.oraChiamata).forEach(n => {
+      const t = new Date(n.dataChiamata); const [h,m] = n.oraChiamata.split(':'); t.setHours(+h,+m,0,0);
+      const ts = t.getTime();
+      if (ts <= now && ts > now - GRACE) maybeNotify('nf-'+n.id+'-'+ts, 'Chiama '+n.nome, '📞 '+(n.tel||n.nome));
+    });
+    // Todos with time
+    state.todos.filter(t => !t.done && t.time).forEach(t => {
+      const d = t.deadline||today; const target = new Date(d); const [h,m] = t.time.split(':'); target.setHours(+h,+m,0,0);
+      const ts = target.getTime();
+      if (ts <= now && ts > now - GRACE) maybeNotify('nf-todo-'+t.id+'-'+ts, t.title, '📋 Attività da gestire');
+    });
+  }, 60000);
+}
+
+// Patch renderNotizie to always show the status bar
+const _origRenderNotizie = renderNotizie;
+renderNotizie = function() {
+  _origRenderNotizie();
+  renderNotifBanner();
+};
+
+// Patch openSetCallDeadline to include notification hint and request permission in-context
+const _origOpenSetCallDeadline = openSetCallDeadline;
+openSetCallDeadline = function(id) {
+  _origOpenSetCallDeadline(id);
+  // After modal opens, inject notification hint if permission not granted
+  if ('Notification' in window && Notification.permission !== 'granted') {
+    setTimeout(() => {
+      const modal = document.querySelector('.modal-box, .modal-content, #modal-body');
+      if (!modal) return;
+      const hint = document.createElement('div');
+      hint.style.cssText = 'margin-top:10px;padding:9px 12px;background:#FEF9F0;border:1px solid #E8C060;border-radius:8px;font-size:12px;color:#7A5900;display:flex;align-items:center;gap:10px';
+      hint.innerHTML = '<span>🔕 Attiva le notifiche per ricevere questo avviso</span><button onclick="enableNotifs()" style="flex-shrink:0;border:none;border-radius:5px;background:#E8721A;color:white;font-size:11px;padding:4px 10px;cursor:pointer;font-family:var(--font-sans)">Attiva</button>';
+      modal.appendChild(hint);
+    }, 100);
+  }
+};
+
+// Patch checkNotificationsOnLoad to also start the interval checker and register SW
+const _origCheckNotificationsOnLoad = checkNotificationsOnLoad;
+checkNotificationsOnLoad = function() {
+  ensureSWRegistered();
+  _origCheckNotificationsOnLoad();
+  startNotifChecker();
+  renderNotifBanner();
+};
+
 </script>
 </body>
 </html>

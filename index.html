@@ -350,8 +350,13 @@ button,a,[onclick] { touch-action:manipulation }
 /* ─── Call box pulse ────────────────────────────── */
 .call-oggi,.call-scaduto { animation:urgentPulse 2.2s ease-in-out infinite }
 @keyframes urgentPulse { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 0 5px rgba(232,114,26,.14)} }
-.call-deadline-box { transition:transform .18s cubic-bezier(.34,1.2,.64,1),border-color var(--tr),background var(--tr) }
+.call-deadline-box { transition:transform .18s cubic-bezier(.34,1.2,.64,1),border-color var(--tr),background var(--tr); touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none }
 .call-deadline-box:active { transform:scale(.95) }
+/* Touch-friendly edit/delete buttons on mobile */
+@media (hover:none),(max-width:600px) {
+.notizia-edit-btn,.notizia-del-btn { width:36px!important; height:36px!important; font-size:14px!important }
+.call-deadline-box { min-height:60px; display:flex; flex-direction:column; align-items:center; justify-content:center }
+}
 
 /* ─── Calendar day ──────────────────────────────── */
 .cal-day:active,.cal-week-day:active { transform:scale(.95); transition:transform .1s ease }
@@ -1155,6 +1160,13 @@ if(id==='notizie'){renderNotizie();}
 if(id==='valutazioni'){renderValutazioni();}
 if(id==='incarichi'){renderIncarichi();}
 if(id==='cronologia')renderCronologia();
+// Sync fresh data from Supabase when switching to any data-heavy tab
+if(currentUser&&!currentUser.isLocal&&supa&&['notizie','valutazioni','pratiche','incarichi','agenda'].includes(id)){
+  if(!window._lastTabRefresh||Date.now()-window._lastTabRefresh>15000){
+    window._lastTabRefresh=Date.now();
+    refreshData();
+  }
+}
 }
 function openModal(html){
 document.getElementById('modal-box').innerHTML=html;document.getElementById('modal-backdrop').classList.add('open');

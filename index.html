@@ -1823,7 +1823,7 @@ return{label:fmtDate(d)+ora,cls:'call-ok'};
 function openSetCallDeadline(id){
 const n=state.notizie.find(x=>x.id===id);if(!n)return;
 const notifHint=('Notification' in window && Notification.permission!=='granted')
-?`<div style="margin-top:10px;padding:9px 12px;background:#FEF9F0;border:1px solid #E8C060;border-radius:8px;font-size:12px;color:#7A5900;display:flex;align-items:center;gap:10px"><span>🔕 Attiva le notifiche per ricevere questo avviso</span><button onclick="enableNotifs()" style="flex-shrink:0;border:none;border-radius:5px;background:#E8721A;color:white;font-size:11px;padding:4px 10px;cursor:pointer;font-family:var(--font-sans)">Attiva</button></div>`
+?`<span onclick="enableNotifs()" title="Attiva notifiche" style="cursor:pointer;font-size:22px;line-height:1;display:inline-block;margin-bottom:8px">🔕</span>`
 :'';
 openModal(`<h3>📞 Promemoria chiamata</h3>
 <div style="font-size:14px;color:var(--text-2);margin-bottom:16px;font-family:var(--font-serif)">${n.nome}</div>

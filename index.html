@@ -1790,18 +1790,17 @@ el.innerHTML=html;
 
 function notiziaContactCard(n){
 const callInfo=callDeadlineInfo(n.dataChiamata,n);
-return`<div class="notizia-card" style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start">
+return`<div class="notizia-card" style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;cursor:pointer" onclick="openAddNotizia(${n.id})">
 <div>
 <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
 <div class="notizia-name">${n.nome}${n.isAcquisizione?` <span style="font-size:11px;background:#FEF0E6;color:#E8721A;padding:2px 7px;border-radius:8px;font-weight:500;vertical-align:middle">Acquisizione</span>`:''}</div>
-<button class="notizia-edit-btn" onclick="openAddNotizia(${n.id})" title="Modifica">✎</button>
-<button class="notizia-del-btn" onclick="deleteNotizia(${n.id})" title="Elimina">✕</button>
+<button class="notizia-del-btn" onclick="event.stopPropagation();deleteNotizia(${n.id})" title="Elimina">✕</button>
 </div>
-${n.tel?`<div class="notizia-via">📞 <a href="tel:${n.tel}" style="color:var(--todo-color);text-decoration:none">${n.tel}</a></div>`:''}
+${n.tel?`<div class="notizia-via">📞 <a href="tel:${n.tel}" style="color:var(--todo-color);text-decoration:none" onclick="event.stopPropagation()">${n.tel}</a></div>`:''}
 ${n.via?`<div class="notizia-via">📍 ${n.via}</div>`:''}
 ${n.note?`<div class="notizia-note">${n.note}</div>`:''}
 </div>
-<div class="call-deadline-box ${callInfo.cls}" onclick="openSetCallDeadline(${n.id})">
+<div class="call-deadline-box ${callInfo.cls}" onclick="event.stopPropagation();openSetCallDeadline(${n.id})">
 <div class="call-deadline-icon">📞</div>
 <div class="call-deadline-label">Chiama entro</div>
 <div class="call-deadline-val">${callInfo.label}</div>
@@ -2124,17 +2123,16 @@ el.innerHTML=sorted.map(v=>valCard(v,dateClass,fmtDateIt)).join('');
 
 function valCard(v,dateClass,fmtDateIt){
 const linked=v.notiziaId?state.notizie.find(n=>n.id===v.notiziaId):null;
-return`<div class="notizia-card">
+return`<div class="notizia-card" onclick="openAddValutazione(${v.id})" style="cursor:pointer">
 <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px">
 <div>
 <div class="notizia-name">${v.nome}</div>
-${linked&&linked.tel?`<div class="notizia-via">📞 <a href="tel:${linked.tel}" style="color:var(--todo-color);text-decoration:none">${linked.tel}</a></div>`:''}
+${linked&&linked.tel?`<div class="notizia-via">📞 <a href="tel:${linked.tel}" style="color:var(--todo-color);text-decoration:none" onclick="event.stopPropagation()">${linked.tel}</a></div>`:''}
 ${v.via?`<div class="notizia-via">📍 ${v.via}</div>`:''}
 ${v.prezzo>0?`<div class="notizia-price" style="font-size:18px;margin-top:6px">€ ${fmtEur(v.prezzo)}</div>`:'<div style="font-size:13px;color:var(--text-4);margin-top:6px">Prezzo da definire</div>'}
 </div>
 <div style="display:flex;gap:4px;flex-shrink:0">
-<button class="notizia-edit-btn" onclick="openAddValutazione(${v.id})" title="Modifica">✎</button>
-<button class="notizia-del-btn" onclick="deleteValutazione(${v.id})" title="Elimina">✕</button>
+<button class="notizia-del-btn" onclick="event.stopPropagation();deleteValutazione(${v.id})" title="Elimina">✕</button>
 </div>
 </div>
 <div class="notizia-dates">

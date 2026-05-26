@@ -3170,7 +3170,7 @@ function renderNotifBanner() {
   if (!bar) {
     bar = document.createElement('div');
     bar.id = 'notif-status-bar';
-    bar.style.margin = '8px 12px 4px';
+    bar.style.cssText = 'display:flex;justify-content:flex-end;padding:0 12px 4px';
     const list = document.getElementById('notizie-list');
     if (list && list.parentNode) list.parentNode.insertBefore(bar, list);
     else return;
@@ -3179,20 +3179,14 @@ function renderNotifBanner() {
   const perm = Notification.permission;
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
   const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-  const base = 'padding:9px 14px;border-radius:10px;font-size:12.5px;display:flex;align-items:center;justify-content:space-between;gap:8px';
-  const btn = (label, fn, bg, col) => `<button onclick="${fn}" style="flex-shrink:0;border:none;border-radius:6px;background:${bg};color:${col};font-size:12px;padding:5px 12px;cursor:pointer;font-family:var(--font-sans);font-weight:500">${label}</button>`;
-  if (isIOS && !isStandalone) {
-    bar.style.cssText = base + ';background:#FEF0E6;border:1px solid #E8721A;color:#8B3A0A';
-    bar.innerHTML = '<span>📱 <b>iPhone:</b> per le notifiche aggiungi l\'app alla Home — tocca <b>Condividi → Aggiungi a Home</b></span>';
-  } else if (perm === 'granted') {
-    bar.style.cssText = base + ';background:#EBF5EB;border:1px solid #6AC46A;color:#1E5E1E';
-    bar.innerHTML = '<span>🔔 Notifiche attive</span>' + btn('Invia test', 'sendTestNotif()', '#4CAF50', '#fff');
+  if (perm === 'granted') {
+    bar.innerHTML = '<span title="Notifiche attive" style="font-size:20px;cursor:pointer" onclick="sendTestNotif()">🔔</span>';
   } else if (perm === 'denied') {
-    bar.style.cssText = base + ';background:#FEECEC;border:1px solid #E57373;color:#B71C1C';
-    bar.innerHTML = '<span>🔕 Notifiche bloccate — vai nelle impostazioni del browser → 🔒 → Notifiche → <b>Consenti</b></span>';
+    bar.innerHTML = '<span title="Notifiche bloccate — abilita nelle impostazioni del browser" style="font-size:20px;opacity:.6">🔕</span>';
+  } else if (isIOS && !isStandalone) {
+    bar.innerHTML = '<span title="Aggiungi alla Home Screen per le notifiche" style="font-size:20px;opacity:.6">🔕</span>';
   } else {
-    bar.style.cssText = base + ';background:#FEF9F0;border:1px solid #E8C060;color:#7A5900';
-    bar.innerHTML = '<span>🔕 Notifiche disattive — attivale per ricevere i promemoria chiamate anche con l\'app chiusa</span>' + btn('Attiva ora', 'enableNotifs()', '#E8721A', '#fff');
+    bar.innerHTML = '<span title="Attiva notifiche" style="font-size:20px;cursor:pointer;touch-action:manipulation" onclick="enableNotifs()">🔕</span>';
   }
 }
 
